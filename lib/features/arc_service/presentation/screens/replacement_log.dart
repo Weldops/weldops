@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../db_service.dart';
+import '../data/datasource/lens_db.dart';
 import '../data/model/lens.dart';
 
 class ReplacementLogScreen extends ConsumerStatefulWidget {
@@ -28,7 +28,7 @@ class _ReplacementLogScreenState extends ConsumerState<ReplacementLogScreen> {
   }
 
   Future<void> _fetchReplacementLogs() async {
-    final logs = await DbService.instance.fetchRecordsById(widget.id);
+    final logs = await fetchRecordsById(widget.id);
     setState(() {
       replacementLogs = logs;
       isLoading = false;

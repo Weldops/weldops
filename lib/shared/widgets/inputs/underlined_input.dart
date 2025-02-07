@@ -48,8 +48,8 @@ class UnderlinedInputState extends State<UnderlinedInput> {
           : TextInputType.emailAddress,
       cursorColor: AppColors.secondaryColor,
       obscureText: _obscureText,
-      style: const TextStyle(
-        color: AppColors.secondaryColor,
+      style: TextStyle(
+        color:  widget.readOnly ? AppColors.labelColor.withOpacity(0.5) : AppColors.secondaryColor,
       ),
       readOnly: widget.readOnly,
       decoration: InputDecoration(
@@ -65,15 +65,15 @@ class UnderlinedInputState extends State<UnderlinedInput> {
         ),
         suffixIcon: widget.isPassword
             ? IconButton(
-                icon: Image.asset(
-                  _obscureText ? AppImages.eyeOffIcon : AppImages.eyeIcon,
-                  width: 24,
-                  height: 24,
-                ),
-                onPressed: () {
-                  _togglePasswordVisibility();
-                },
-              )
+          icon: Image.asset(
+            _obscureText ? AppImages.eyeOffIcon : AppImages.eyeIcon,
+            width: 24,
+            height: 24,
+          ),
+          onPressed: () {
+            _togglePasswordVisibility();
+          },
+        )
             : widget.suffix,
       ),
     );

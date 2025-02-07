@@ -13,6 +13,7 @@ import 'package:esab/shared/widgets/texts/navigate_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
@@ -66,6 +67,8 @@ class SignInScreenState extends ConsumerState<SignInScreen> {
     if (!mounted) return;
 
     if (signInState.isSignedIn) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('email', emailController.text.trim());
       Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
       SnackbarUtils.showSnackbar(
           context, AppLocalizations.of(context)!.loginSuccess);

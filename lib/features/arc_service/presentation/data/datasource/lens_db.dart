@@ -1,73 +1,51 @@
-//
-//
-//
-//
-// // Lens tracking methods
-// Future<void> initializeLensTracking(String deviceId) async {
-//   final db = await database;
-//   final now = DateTime.now().toIso8601String();
-//
-//   // Check if lens data already exists for this device
-//   final existing = await db.query(
-//     'lens_tracking',
-//     where: 'deviceId = ?',
-//     whereArgs: [deviceId],
-//   );
-//
-//   if (existing.isEmpty) {
-//     // Initialize with default values for both lenses
-//     final defaultLenses = [
-//       {
-//         'deviceId': deviceId,
-//         'lensType': 'Outer Lens Cover',
-//         'percentage': 80,
-//         'hours': '20',
-//         'imageUrl': 'assets/images/outer_lens.png',
-//         'lastUpdated': now,
-//       },
-//       {
-//         'deviceId': deviceId,
-//         'lensType': 'Inner Lens Cover',
-//         'percentage': 10,
-//         'hours': '180',
-//         'imageUrl': 'assets/images/inner_lens.png',
-//         'lastUpdated': now,
-//       },
-//     ];
-//
-//     for (var lens in defaultLenses) {
-//       await db.insert('lens_tracking', lens);
-//     }
-//   }
-// }
-//
-// Future<List<Map<String, dynamic>>> getLensData(String deviceId) async {
-//   final db = await database;
-//   return db.query(
-//     'lens_tracking',
-//     where: 'deviceId = ?',
-//     whereArgs: [deviceId],
-//   );
-// }
-//
-// Future<void> updateLensData(
-//     String deviceId,
-//     String lensType,
-//     int percentage,
-//     String hours,
-//     ) async {
-//   final db = await database;
-//   final now = DateTime.now().toIso8601String();
-//
-//   await db.update(
-//     'lens_tracking',
-//     {
-//       'percentage': percentage,
-//       'hours': hours,
-//       'lastUpdated': now,
-//     },
-//     where: 'deviceId = ? AND lensType = ?',
-//     whereArgs: [deviceId, lensType],
-//   );
-// }
-// }
+import 'package:esab/db_service.dart';
+
+import '../model/lens.dart';
+
+final dbServiceInstance = DbService.instance;
+Future<int> insertRecord(LensRecord record) async {
+  final db = await dbServiceInstance.database;
+  return await db.insert('lens_records', record.toMap());
+}
+
+Future<List<LensRecord>> getAllLogs() async {
+  final db = await dbServiceInstance.database;
+  final List<Map<String, dynamic>> maps = await db.query('lens_records');
+  return List.generate(maps.length, (i) => LensRecord.fromMap(maps[i]));
+}
+
+
+Future<int> updateRecord(LensRecord record) async {
+  final db = await dbServiceInstance.database;
+  return await db.update(
+    'lens_records',
+    record.toMap(),
+    where: 'id = ?',
+    whereArgs: [record.id],
+  );
+}
+
+Future<List<LensRecord>> fetchRecordsById(int id) async {
+  final db = await dbServiceInstance.database;
+  final result = await db.query(
+    'lens_replacement',
+    where: 'lens_record_id = ?',
+    whereArgs: [id],
+    orderBy: 'lastUpdated DESC',
+  );
+  return result.map((map) => LensRecord.fromMap(map)).toList();
+}
+
+Future<int> addLog(LensRecord record) async {
+  final db = await dbServiceInstance.database;
+  final logEntry = {
+    'lens_record_id': record.id,
+    'title': record.title,
+    'imageUrl': record.imageUrl,
+    'percentage': record.percentage,
+    'hours': record.hours,
+    'lastUpdated': record.lastUpdated.toIso8601String(),
+    'comments': record.comments,
+  };
+  return await db.insert('lens_replacement', logEntry);
+}

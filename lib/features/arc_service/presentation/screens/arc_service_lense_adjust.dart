@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../settings/presentation/widgets/snack_bar.dart';
+import '../data/datasource/lens_db.dart';
 import '../data/model/lens.dart';
 import '../providers/lens_provider.dart';
 
@@ -89,7 +90,7 @@ class _AdjustLensPercentageScreenState
   }
 
   Future<void> _fetchReplacementLogs() async {
-    final logs = await DbService.instance.fetchRecordsById(widget.id);
+    final logs = await fetchRecordsById(widget.id);
     setState(() {
       replacementLogs = logs;
     });
@@ -422,8 +423,8 @@ class _AdjustLensPercentageScreenState
                         comments: commentsController.text,
                       );
 
-                      await DbService.instance.updateRecord(updatedRecord);
-                      await DbService.instance.addLog(updatedRecord);
+                      await updateRecord(updatedRecord);
+                      await addLog(updatedRecord);
 
                       await showCustomSnackBar(
                           context, 'Lens cover changes saved');
@@ -463,7 +464,6 @@ class _AdjustLensPercentageScreenState
       ) : const Center(
         child: Text(
           "No Data Available",style: AppTextStyles.secondarySmallText,
-          // textAlign: TextAlign.center,
         ),
       ),
     );

@@ -43,22 +43,27 @@ class UnderlineDropdown extends StatelessWidget {
           const SizedBox(
             height: 5,
           ),
-          DropdownButtonFormField(
-              items: items,
-              onChanged: onChanged,
-              value: value,
-              decoration: InputDecoration(
-                labelText: label,
-                labelStyle: const TextStyle(color: Colors.grey),
-                enabledBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.secondaryColor),
-                ),
-                focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.secondaryColor),
-                ),
-                errorText: errorText,
-                errorStyle: AppTextStyles.errorSmallText,
-              )),
+          Theme(
+            data:Theme.of(context).copyWith(
+              canvasColor: AppColors.cardBgColor, // Background color of dropdown items
+            ),
+            child: DropdownButtonFormField(
+                items: items,
+                onChanged: onChanged,
+                value: value,
+                decoration: InputDecoration(
+                  labelText: label,
+                  labelStyle: AppTextStyles.secondaryTextStyle,
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.secondaryColor),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.secondaryColor),
+                  ),
+                  errorText: errorText,
+                  errorStyle: AppTextStyles.errorSmallText,
+                )),
+          ),
         ],
       ),
     );

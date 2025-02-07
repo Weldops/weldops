@@ -42,8 +42,19 @@ class _EditProfileState extends ConsumerState<EditProfile> {
   }
 
   static Future<void> saveUser(
-      String userName, String email, File? imageFile) async {
+      String userName, String email, File? imageFile,String role) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (imageFile != null) {
+      List<int> imageBytes = await imageFile.readAsBytes();
+      String base64Image = base64Encode(imageBytes);
+      await prefs.setString('profilePhoto', base64Image);
+    }
 
+    await prefs.setString('userName', userName);
+    await prefs.setString('email', email);
+    await prefs.setString('role', role);
+
+    print("Saved Image: ${prefs.getString('profilePhoto')}");
   }
 
   @override
@@ -52,21 +63,25 @@ class _EditProfileState extends ConsumerState<EditProfile> {
     getUser();
   }
 
-  getUser() async {
+  Future<void> getUser() async {
     final prefs = await SharedPreferences.getInstance();
+
     nameController.text = prefs.getString('userName') ?? 'User';
     emailController.text = prefs.getString('email') ?? 'abc@example.com';
-    if (prefs.getString('profilePhoto') != null) {
-      if (prefs.getString('profilePhoto')!.isNotEmpty) {
-        Uint8List imageBytes = base64Decode(prefs.getString('profilePhoto')!);
-        Directory tempDir = await getTemporaryDirectory();
-        File imageFile = File('${tempDir.path}/profile_photo.png');
+    role = prefs.getString('role') ?? 'Welder';
 
-        await imageFile.writeAsBytes(imageBytes);
-        _image = imageFile;
-      }
+    final profilePhoto = prefs.getString('profilePhoto') ?? "";
+    if (profilePhoto != "" && profilePhoto.isNotEmpty) {
+      Uint8List imageBytes = base64Decode(prefs.getString('profilePhoto')!);
+      Directory tempDir = await getTemporaryDirectory();
+      File imageFile = File('${tempDir.path}/profile_photo.png');
+
+      await imageFile.writeAsBytes(imageBytes);
+      _image = imageFile;
     }
-    setState(() {});
+
+    setState(() {
+    });
   }
 
   @override
@@ -146,6 +161,8 @@ class _EditProfileState extends ConsumerState<EditProfile> {
             UnderlinedInput(
               labelText: 'Email',
               controller: emailController,
+              readOnly: true,
+
             )
           ],
         ),
@@ -153,10 +170,18 @@ class _EditProfileState extends ConsumerState<EditProfile> {
       bottomNavigationBar: CustomButton(
         buttonText: 'Save Changes',
         onTapCallback: () {
-          saveUser(
-              nameController.text.trim(), emailController.text.trim(), _image);
+          saveUser(nameController.text.trim(), emailController.text.trim(), _image,role);
+          Navigator.pop(context,true);
         },
       ),
     );
   }
+}
+
+Future<File?> getProfileImage(String image) async {
+  final Uint8List imageBytes = base64Decode(image);
+  final File imageFile = File('${(await getTemporaryDirectory()).path}/profile_photo.png');
+
+  await imageFile.writeAsBytes(imageBytes);
+  return imageFile;
 }

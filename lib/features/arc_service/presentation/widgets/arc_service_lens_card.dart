@@ -3,7 +3,7 @@ import 'package:esab/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/adf_service_state_notifier.dart';
+import '../providers/lens_provider.dart';
 
 class LensCard extends ConsumerWidget {
   const LensCard(
