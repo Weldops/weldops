@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:esab/features/auth/presentation/providers/auth_state_notifier_provider.dart';
 import 'package:esab/features/settings/presentation/widgets/setting_row.dart';
 import 'package:esab/themes/app_text_styles.dart';
@@ -6,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingScreen extends ConsumerStatefulWidget {
   const SettingScreen({super.key});
@@ -15,6 +18,8 @@ class SettingScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingScreenState extends ConsumerState<SettingScreen> {
+  String _userName = "User";
+  String _email = "";
   moveToPartDetails(part) async {
     Navigator.pushNamed(context, '/partDetails', arguments: {'part': part});
   }
@@ -22,6 +27,19 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
   @override
   void initState() {
     super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final userName = prefs.getString('userName') ?? "User";
+    final email = prefs.getString('email') ?? "";
+
+    setState(() {
+      _userName = userName;
+      _email = email;
+    });
   }
 
   Future<void> logout() async {
@@ -31,9 +49,10 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
   }
 
   Future<void> editProfilePage() async {
-    print('object');
-    // await FirebaseAuth.instance.signOut();
-    Navigator.pushNamed(context, '/editProfile');
+    final result = await Navigator.pushNamed(context, '/editProfile'); // Await the result
+    if (result == true) {
+      await _loadUserData();
+    }
   }
 
   @override
@@ -68,12 +87,12 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'User',
+                          Text(
+                            _userName,
                             style: AppTextStyles.headerText,
                           ),
                           Text(
-                            user_info.user?.email ?? '',
+                            user_info.user?.email ?? _email, // Prefer user_info email if available
                             style: AppTextStyles.secondarySmallText,
                           ),
                         ],
