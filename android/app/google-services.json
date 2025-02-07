@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "833294760549",
+    "project_id": "weldops",
+    "storage_bucket": "weldops.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:833294760549:android:4f29658a43e3d8bab5a48c",
+        "android_client_info": {
+          "package_name": "com.company.weldopsdev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "833294760549-achjmitl7ipv3gkcgflp42qtj903tsad.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.company.weldopsdev",
+            "certificate_hash": "0dd31862dd93ab95cb32a7b864b63c9a1224e27d"
+          }
+        },
+        {
+          "client_id": "833294760549-l4dbtkojjipj38vl8hqa7tsfb2o8q1p3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpLrGUEnsK0OVdCpF6_4Y7f_hcUk9RdSw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "833294760549-l4dbtkojjipj38vl8hqa7tsfb2o8q1p3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "833294760549-bi7h7fc31r0lsneedl0bl9s77q0cp0en.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.company.weldopsdev"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

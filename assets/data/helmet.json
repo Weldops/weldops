@@ -1,0 +1,175 @@
+{
+  "helmets": [
+    {
+      "modelId": "SentinelA70",
+      "modelName": "Sentinel A70",
+      "imageUrl": "assets/images/helmet_image.png",
+      "adfSettings": [
+        {
+          "modeType": "Welding",
+          "image": "assets/images/welding_img.png",
+          "shade": {
+            "image": "assets/images/shade_img.png",
+            "min": 5.0,
+            "max": 13.0,
+            "default": 10.0
+          },
+          "sensitivity": {
+            "image": "assets/images/sensitivity_img.png",
+            "min": 0.0,
+            "max": 5.0,
+            "default": 5.0
+          },
+          "delay": {
+            "image": "assets/images/delay_img.png",
+            "min": 0.0,
+            "max": 5.0,
+            "default": 5.0
+          }
+        },
+        {
+          "modeType": "Cutting",
+          "image": "assets/images/cutting_img.png",
+          "shade": {
+            "image": "assets/images/shade_img.png",
+            "min": 5.0,
+            "max": 13.0,
+            "default": 10.0
+          },
+          "sensitivity": {
+            "image": "assets/images/sensitivity_img.png",
+            "min": 0.0,
+            "max": 5.0,
+            "default": 5.0
+          },
+          "delay": {
+            "image": "assets/images/delay_img.png",
+            "min": 0.0,
+            "max": 5.0,
+            "default": 5.0
+          }
+        }
+      ]
+    },
+    {
+      "modelId": "default",
+      "modelName": "default",
+      "imageUrl": "assets/images/helmet_image.png",
+
+      "adfSettings": [
+        {
+          "modeType": "Welding",
+          "image": "assets/images/welding_img.png",
+          "shade": {
+            "image": "assets/images/shade_img.png",
+            "min": 5.0,
+            "max": 13.0,
+            "default": 10.0
+          },
+          "sensitivity": {
+            "image": "assets/images/sensitivity_img.png",
+            "min": 0.0,
+            "max": 5.0,
+            "default": 5.0
+          },
+          "delay": {
+            "image": "assets/images/delay_img.png",
+            "min": 0.0,
+            "max": 5.0,
+            "default": 5.0
+          }
+        },
+        {
+          "modeType": "Cutting",
+          "image": "assets/images/cutting_img.png",
+          "shade": {
+            "image": "assets/images/shade_img.png",
+            "min": 5.0,
+            "max": 13.0,
+            "default": 10.0
+          },
+          "sensitivity": {
+            "image": "assets/images/sensitivity_img.png",
+            "min": 0.0,
+            "max": 5.0,
+            "default": 5.0
+          },
+          "delay": {
+            "image": "assets/images/delay_img.png",
+            "min": 0.0,
+            "max": 5.0,
+            "default": 5.0
+          }
+        }
+      ]
+    },
+    {
+      "modelId": "SAVAGE A40",
+      "modelName": "SAVAGE A40",
+      "imageUrl": "assets/images/helmet_image.png",
+
+      "adfSettings": [
+        {
+          "modeType": "Welding",
+          "image": "assets/images/welding_img.png",
+          "shade": {
+            "image": "assets/images/shade_img.png",
+            "min": 5.0,
+            "max": 13.0,
+            "default": 10.0
+          },
+          "sensitivity": {
+            "image": "assets/images/sensitivity_img.png",
+            "min": 0.0,
+            "max": 5.0,
+            "default": 5.0
+          },
+          "delay": {
+            "image": "assets/images/delay_img.png",
+            "min": 0.0,
+            "max": 5.0,
+            "default": 5.0
+          }
+        },
+        {
+          "modeType": "Cutting",
+          "image": "assets/images/cutting_img.png",
+          "shade": {
+            "image": "assets/images/shade_img.png",
+            "min": 5.0,
+            "max": 13.0,
+            "default": 10.0
+          },
+          "sensitivity": {
+            "image": "assets/images/sensitivity_img.png",
+            "min": 0.0,
+            "max": 5.0,
+            "default": 5.0
+          },
+          "delay": {
+            "image": "assets/images/delay_img.png",
+            "min": 0.0,
+            "max": 5.0,
+            "default": 5.0
+          }
+        },
+        {
+          "modeType": "Other",
+          "image": "assets/images/cutting_img.png",
+          "shade": {
+            "image": "assets/images/shade_img.png",
+            "min": 5.0,
+            "max": 13.0,
+            "default": 10.0
+          },
+          "delay": {
+            "image": "assets/images/delay_img.png",
+            "min": 0.0,
+            "max": 5.0,
+            "default": 5.0
+          }
+        }
+      ]
+    }
+  ]
+}

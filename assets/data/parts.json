@@ -1,0 +1,60 @@
+{
+  "parts": [
+    {
+      "partCode": "100",
+      "partType": "Torches",
+      "partImage": "assets/images/part1.png",
+      "partName": "Exeor MIG Torches Gas-Cooled CX",
+      "specifications": [
+        { "label": "Cable Length", "value": "6.1 & 15.2 M" },
+        { "label": "Cooling Method", "value": "60% @420A" },
+        { "label": "Type", "value": "Manual" }
+      ],
+      "partDetail": {
+        "title": "Exeor MIG Torches Gas-Cooled CX",
+        "subTitle": "Exeor is the next generation of torches designed to equip the welder with the best torch for ESAB welding systems",
+        "description": "Exeor is the next generation of torches designed to equip the welder with the best torch for ESAB welding systems.",
+        "partImages": ["assets/images/part1.png", "assets/images/part11.png"],
+        "specifications": [
+          { "label": "Cable Length", "value": "6.1 & 15.2 M" },
+          { "label": "Cooling Method", "value": "60% @420A" },
+          { "label": "Type", "value": "Manual" }
+        ],
+        "Highlights": [
+          "Slim and well-balanced handle with soft grip area",
+          "Excellent cooling performance for less spatter attachment, longer lifetime of consumables and better working conditions for the welder",
+          "Choose Exeor CX remote variant for easy-to-use access to up/down adjustment of parameters and selection between 3 pre-selected jobs on Warrior Edge welding systems",
+          "Exeor DX provides access to 10 jobs and the adjustment of multiple different parameters directly from the torch, all visible on the graphical display"
+        ]
+      }
+    },
+    {
+      "partCode": "101",
+      "partType": "Consumables",
+      "partImage": "assets/images/part2.png",
+      "partName": "Spray Master 450 Air Cooled MIG Gun",
+      "specifications": [
+        { "label": "Cable Length", "value": "6.1 & 15.2 M" },
+        { "label": "Cooling Method", "value": "60% @420A" },
+        { "label": "Type", "value": "Manual" }
+      ],
+      "partDetail": {
+        "title": "Spray Master 450 Air Cooled MIG Gun",
+        "subTitle": "Spray Master is the next generation of torches designed to equip the welder with the best torch for ESAB welding systems",
+        "description": "Spray Master is the next generation of torches designed to equip the welder with the best torch for ESAB welding systems.",
+        "partImages": ["assets/images/part2.png"],
+        "specifications": [
+          { "label": "Cable Length", "value": "6.1 & 15.2 M" },
+          { "label": "Cooling Method", "value": "60% @420A" },
+          { "label": "Type", "value": "Manual" }
+        ],
+        "Highlights": [
+          "Slim and well-balanced handle with soft grip area",
+          "Excellent cooling performance for less spatter attachment, longer lifetime of consumables and better working conditions for the welder",
+          "Choose Exeor CX remote variant for easy-to-use access to up/down adjustment of parameters and selection between 3 pre-selected jobs on Warrior Edge welding systems",
+          "Spray Master DX provides access to 10 jobs and the adjustment of multiple different parameters directly from the torch, all visible on the graphical display"
+        ]
+      }
+    }
+  ]
+}
