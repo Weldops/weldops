@@ -4,41 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../data/datasource/lens_db.dart';
-import '../data/model/lens.dart';
+import '../providers/state/replacement_log_provider.dart';
 
-class ReplacementLogScreen extends ConsumerStatefulWidget {
+class ReplacementLogScreen extends ConsumerWidget {
   final int id;
 
   const ReplacementLogScreen({required this.id, super.key});
 
   @override
-  ConsumerState<ReplacementLogScreen> createState() =>
-      _ReplacementLogScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final logsState = ref.watch(replacementLogProvider(id));
 
-class _ReplacementLogScreenState extends ConsumerState<ReplacementLogScreen> {
-  List<LensRecord> replacementLogs = [];
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchReplacementLogs();
-  }
-
-  Future<void> _fetchReplacementLogs() async {
-    final logs = await fetchRecordsById(widget.id);
-    setState(() {
-      replacementLogs = logs;
-      isLoading = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: AppColors.primaryBackgroundColor,
       appBar: AppBar(
@@ -50,41 +26,18 @@ class _ReplacementLogScreenState extends ConsumerState<ReplacementLogScreen> {
           style: AppTextStyles.appHeaderText,
         ),
       ),
-      body:isLoading
-          ?  const Center(
-        child: CircularProgressIndicator(color: AppColors.primaryColor),
-      )
-          : Padding(
-        padding: const EdgeInsets.all(15),
-        child: replacementLogs.isEmpty
-            ? Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: screenWidth * 0.1,
-              vertical: screenHeight * 0.1),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Center(
-                child: Image.asset(
-                  'assets/images/empty_log.png',
-                ),
-              ),
-              SizedBox(
-                height: screenHeight * 0.02,
-              ),
-              Text(
-                "No logs found please use the button and enter the new log",
-                textAlign: TextAlign.center,
-                style: AppTextStyles.secondarySmallText
-                    .copyWith(fontWeight: FontWeight.w300),
-              )
-            ],
+      body: logsState.when(
+        data: (logs) => logs.isEmpty
+            ? const Center(
+          child: Text(
+            "No logs found, please enter a new log.",
+            style: AppTextStyles.secondarySmallText,
           ),
         )
             : ListView.builder(
-          itemCount: replacementLogs.length,
+          itemCount: logs.length,
           itemBuilder: (context, index) {
-            final log = replacementLogs[index];
+            final log = logs[index];
             return Card(
               color: AppColors.cardBgColor,
               margin: const EdgeInsets.only(bottom: 10),
@@ -145,7 +98,12 @@ class _ReplacementLogScreenState extends ConsumerState<ReplacementLogScreen> {
             );
           },
         ),
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.primaryColor),
+        ),
+        error: (error, stackTrace) => Center(
+          child: Text("Error: ${error.toString()}"),
+        ),
       ),
     );
-  }
-}
+  }}

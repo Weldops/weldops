@@ -7,6 +7,7 @@ class AppColors {
       Color(0xFF1D1B20); //background black
   static const Color secondaryTextColor = Color(0xFF000000);
   static const Color labelColor = Color(0xFFEEEEEE);
+  static const Color buttonBgColor = Color(0xFFE0E0E0);
   static const Color errorColor = Color(0xFFFF3D00);
   static const Color mediumColor = Color.fromARGB(255, 234, 133, 74);
   static const Color successColor = Color.fromARGB(255, 0, 255, 0);

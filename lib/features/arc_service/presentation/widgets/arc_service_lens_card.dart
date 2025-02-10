@@ -3,7 +3,6 @@ import 'package:esab/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/lens_provider.dart';
 
 class LensCard extends ConsumerWidget {
   const LensCard(
@@ -75,8 +74,7 @@ class LensCard extends ConsumerWidget {
                       PopupMenuItem(
                           onTap: () async {
                             if (context.mounted) {
-                              // Navigate and await the result
-                              final result = await Navigator.pushNamed(
+                               await Navigator.pushNamed(
                                   context, '/serviceLensAdjust',
                                   arguments: {
                                     'id': id,
@@ -85,10 +83,6 @@ class LensCard extends ConsumerWidget {
                                     'imageUrl': imageUrl,
                                     'hours': hours
                                   });
-                              if (result == true && context.mounted) {
-                                ref.invalidate(lensRecordsProvider);
-                              }
-
                             }
                           },
                           child: Row(

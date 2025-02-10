@@ -1,4 +1,3 @@
-import 'package:esab/db_service.dart';
 import 'package:esab/shared/widgets/buttons/custom_button.dart';
 import 'package:esab/shared/widgets/buttons/custom_outlined_button.dart';
 import 'package:esab/shared/widgets/inputs/outlined_input.dart';
@@ -11,9 +10,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../settings/presentation/widgets/snack_bar.dart';
-import '../data/datasource/lens_db.dart';
 import '../data/model/lens.dart';
 import '../providers/lens_provider.dart';
+import '../providers/state/replacement_log_provider.dart';
 
 class AdjustLensPercentageScreen extends ConsumerStatefulWidget {
   const AdjustLensPercentageScreen(
@@ -86,20 +85,11 @@ class _AdjustLensPercentageScreenState
     print("id:  ${widget.id}");
     print("hours:  ${widget.hours}");
     print("percentage:  ${widget.percentage}");
-    _fetchReplacementLogs();
   }
 
-  Future<void> _fetchReplacementLogs() async {
-    final logs = await fetchRecordsById(widget.id);
-    setState(() {
-      replacementLogs = logs;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
-    final logsAsync = ref.watch(replacementLogsProvider(widget.id));
-
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -303,8 +293,7 @@ class _AdjustLensPercentageScreenState
                               }
                               return Padding(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal:
-                                        2), // Add spacing between containers
+                                    horizontal: 2),
                                 child: Container(
                                   height: index == indexValue ? 50 : 25,
                                   width: 2,
@@ -423,8 +412,8 @@ class _AdjustLensPercentageScreenState
                         comments: commentsController.text,
                       );
 
-                      await updateRecord(updatedRecord);
-                      await addLog(updatedRecord);
+                      ref.read(lensRecordsProvider.notifier).updateLensRecord(updatedRecord);
+                      ref.read(replacementLogProvider(widget.id).notifier).addLogEntry(updatedRecord);
 
                       await showCustomSnackBar(
                           context, 'Lens cover changes saved');

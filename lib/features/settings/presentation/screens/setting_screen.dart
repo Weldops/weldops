@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:esab/features/auth/presentation/providers/auth_state_notifier_provider.dart';
 import 'package:esab/features/settings/presentation/widgets/setting_row.dart';
 import 'package:esab/themes/app_text_styles.dart';
@@ -8,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../widgets/user_utils.dart';
 
 class SettingScreen extends ConsumerStatefulWidget {
   const SettingScreen({super.key});
@@ -18,8 +16,6 @@ class SettingScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingScreenState extends ConsumerState<SettingScreen> {
-  String _userName = "User";
-  String _email = "";
   moveToPartDetails(part) async {
     Navigator.pushNamed(context, '/partDetails', arguments: {'part': part});
   }
@@ -27,20 +23,8 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
   }
 
-  Future<void> _loadUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final userName = prefs.getString('userName') ?? "User";
-    final email = prefs.getString('email') ?? "";
-
-    setState(() {
-      _userName = userName;
-      _email = email;
-    });
-  }
 
   Future<void> logout() async {
     print('object');
@@ -49,16 +33,13 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
   }
 
   Future<void> editProfilePage() async {
-    final result = await Navigator.pushNamed(context, '/editProfile'); // Await the result
-    if (result == true) {
-      await _loadUserData();
-    }
+    Navigator.pushNamed(context, '/editProfile');
   }
 
   @override
   Widget build(BuildContext context) {
     final user_info = ref.watch(signInStateNotifierProvider);
-
+    final user = ref.watch(userProvider);
     return Scaffold(
         backgroundColor: AppColors.primaryBackgroundColor,
         appBar: AppBar(
@@ -77,10 +58,13 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
                 children: [
                   Row(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 30,
-                        child: Icon(Icons.person),
+                        backgroundColor: Colors.grey.shade800,
+                        backgroundImage: user.profileImage != null ? FileImage(user.profileImage!) : null,
+                        child: user.profileImage == null ? const Icon(Icons.person, size: 30) : null,
                       ),
+
                       const SizedBox(
                         width: 10,
                       ),
@@ -88,11 +72,11 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _userName,
+                            user.userName,
                             style: AppTextStyles.headerText,
                           ),
                           Text(
-                            user_info.user?.email ?? _email, // Prefer user_info email if available
+                            user_info.user?.email ?? user.email, // Prefer user_info email if available
                             style: AppTextStyles.secondarySmallText,
                           ),
                         ],

@@ -9,10 +9,10 @@ import 'package:esab/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../../shared/widgets/dropdown/underline_dropdown.dart';
+import '../widgets/user_utils.dart';
 
 class EditProfile extends ConsumerStatefulWidget {
   const EditProfile({super.key});
@@ -30,6 +30,15 @@ class _EditProfileState extends ConsumerState<EditProfile> {
 
   File? _image;
 
+  @override
+  void initState() {
+    super.initState();
+    final user = ref.read(userProvider);
+    nameController.text = user.userName;
+    emailController.text = user.email;
+    _image = user.profileImage;
+  }
+
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -41,48 +50,6 @@ class _EditProfileState extends ConsumerState<EditProfile> {
     }
   }
 
-  static Future<void> saveUser(
-      String userName, String email, File? imageFile,String role) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (imageFile != null) {
-      List<int> imageBytes = await imageFile.readAsBytes();
-      String base64Image = base64Encode(imageBytes);
-      await prefs.setString('profilePhoto', base64Image);
-    }
-
-    await prefs.setString('userName', userName);
-    await prefs.setString('email', email);
-    await prefs.setString('role', role);
-
-    print("Saved Image: ${prefs.getString('profilePhoto')}");
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    getUser();
-  }
-
-  Future<void> getUser() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    nameController.text = prefs.getString('userName') ?? 'User';
-    emailController.text = prefs.getString('email') ?? 'abc@example.com';
-    role = prefs.getString('role') ?? 'Welder';
-
-    final profilePhoto = prefs.getString('profilePhoto') ?? "";
-    if (profilePhoto != "" && profilePhoto.isNotEmpty) {
-      Uint8List imageBytes = base64Decode(prefs.getString('profilePhoto')!);
-      Directory tempDir = await getTemporaryDirectory();
-      File imageFile = File('${tempDir.path}/profile_photo.png');
-
-      await imageFile.writeAsBytes(imageBytes);
-      _image = imageFile;
-    }
-
-    setState(() {
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -170,8 +137,12 @@ class _EditProfileState extends ConsumerState<EditProfile> {
       bottomNavigationBar: CustomButton(
         buttonText: 'Save Changes',
         onTapCallback: () {
-          saveUser(nameController.text.trim(), emailController.text.trim(), _image,role);
-          Navigator.pop(context,true);
+          ref.read(userProvider.notifier).saveUser(
+            nameController.text.trim(),
+            emailController.text.trim(),
+            _image,
+          );
+          Navigator.pop(context);
         },
       ),
     );
