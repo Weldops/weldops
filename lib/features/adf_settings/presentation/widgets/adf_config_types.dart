@@ -35,6 +35,8 @@ class AdfConfigTypes extends ConsumerWidget {
               // Adjust width based on item count
               if (itemCount == 2 || itemCount == 4) {
                 widthFactor = 0.47;
+              } else if (itemCount == 1){
+                widthFactor = 1.0;
               } else {
                 widthFactor = 0.33;
               }
