@@ -10,8 +10,6 @@ import 'package:esab/features/adf_settings/presentation/widgets/gauge_indicator.
 import 'package:esab/features/adf_settings/presentation/widgets/remove_bottom_sheet.dart';
 import 'package:esab/features/adf_settings/presentation/widgets/rename_bottom_sheet.dart';
 import 'package:esab/features/adf_settings/presentation/widgets/save_memory_bottom_sheet.dart';
-// import 'package:esab/features/adf_settings/presentation/widgets/remove_bottom_sheet.dart';
-// import 'package:esab/features/adf_settings/presentation/widgets/rename_bottom_sheet.dart';
 import 'package:esab/features/adf_settings/presentation/widgets/welding_cutting_selection.dart';
 import 'package:esab/features/home/presentation/providers/home_state_notifier_provider.dart';
 import 'package:esab/features/memory/presentation/providers/memory_state_notifier.dart';
@@ -209,7 +207,8 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
     final adfSettingsState = ref.watch(adfSettingStateNotifierProvider);
     List<AdfSettingsState> memories =
         ref.watch(memoryStateNotifierProvider).reversed.toList();
-
+    print("adfSettings: $adfSettings");
+    print("workingType: ${adfSettingsState.workingType}");
     removeDevice() async {
       showModalBottomSheet(
           context: context,
@@ -377,13 +376,16 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
                       ...adfSettings.map((x) {
                         if (adfSettingsState.workingType!.toLowerCase() ==
                             x['modeType'].toLowerCase()) {
+                          bool isCuttingMode = x['modeType'].toLowerCase() == 'cutting';
                           return Column(
                             children: [
                               GaugeIndicator(
                                 values: x,
+                                isCuttingMode: isCuttingMode,
                               ),
                               AdfConfigTypes(
                                 values: x,
+                                isCuttingMode: isCuttingMode,
                               ),
                             ],
                           );

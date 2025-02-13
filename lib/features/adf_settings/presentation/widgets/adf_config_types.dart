@@ -6,8 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AdfConfigTypes extends ConsumerWidget {
-  const AdfConfigTypes({required this.values, super.key});
+  const AdfConfigTypes({required this.values, required this.isCuttingMode, super.key});
   final Map values;
+  final bool isCuttingMode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,12 +36,14 @@ class AdfConfigTypes extends ConsumerWidget {
               // Adjust width based on item count
               if (itemCount == 2 || itemCount == 4) {
                 widthFactor = 0.47;
-              } else if (itemCount == 1){
+              } else if (itemCount == 1) {
                 widthFactor = 1.0;
               } else {
                 widthFactor = 0.33;
               }
-
+              bool isSelected = isCuttingMode
+                  ? (key == 'shade')
+                  : (adfSettingsState.configType == key);
               return FractionallySizedBox(
                 widthFactor: widthFactor,
                 child: GestureDetector(
@@ -55,7 +58,7 @@ class AdfConfigTypes extends ConsumerWidget {
                     value: adfSettingsState
                             .values['${key.toString().toLowerCase()}Value'] ??
                         values[key.toString().toLowerCase()]['default'],
-                    isSelected: adfSettingsState.configType == key,
+                    isSelected: isSelected,
                   ),
                 ),
               );

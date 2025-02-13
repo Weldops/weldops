@@ -10,27 +10,31 @@ import 'package:gauge_indicator/gauge_indicator.dart';
 
 class GaugeIndicator extends ConsumerWidget {
   final dynamic values;
+  final bool isCuttingMode;
 
   const GaugeIndicator({
     super.key,
     required this.values,
+    required this.isCuttingMode,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final adfSettingsState = ref.watch(adfSettingStateNotifierProvider);
     final device = ref.watch(bluetoothNotifierProvider);
-    double minGaugeValue =
-        values[adfSettingsState.configType!.toLowerCase()]['min'];
-    double maxGaugeValue =
-        values[adfSettingsState.configType!.toLowerCase()]['max'];
-    double defaultGaugeValue =
-        values[adfSettingsState.configType!.toLowerCase()]['default'];
+
+    // For cutting mode, always use shade configuration
+    String configType = isCuttingMode ? 'shade' :
+    (adfSettingsState.configType?.toLowerCase() ?? 'shade');
+    String type = configType;
+
+    final configValues = values[configType] as Map<String, dynamic>;
+    double minGaugeValue = configValues['min'];
+    double maxGaugeValue = configValues['max'];
+    double defaultGaugeValue = configValues['default'];
 
     final screenWidth = MediaQuery.of(context).size.width;
 
-    final adfSettingState = ref.watch(adfSettingStateNotifierProvider);
-    String type = adfSettingState.configType!;
     setValue(double value) async {
       if (device.writeCharacteristic != null &&
           device.readCharacteristic != null) {
@@ -78,7 +82,7 @@ class GaugeIndicator extends ConsumerWidget {
     }
 
     getAdfSettingValue(String configType) {
-      return adfSettingState.values['${configType.toLowerCase()}Value'] ??
+      return adfSettingsState.values['${configType.toLowerCase()}Value'] ??
           defaultGaugeValue;
     }
 
