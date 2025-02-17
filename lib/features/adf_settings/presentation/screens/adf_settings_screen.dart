@@ -43,7 +43,7 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
   void initState() {
     super.initState();
     init();
-    ref.read(adfSettingStateNotifierProvider.notifier).setWorkingType('welding');
+    ref.read(adfSettingStateNotifierProvider.notifier).setWorkingType('Welding');
 
     startFetchingValues();
   }
@@ -125,67 +125,6 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
     _timer = Timer.periodic(const Duration(seconds: 4), (timer) async {
       init();
     });
-  }
-
-  getDefaultValue() {
-    Map<String, dynamic> values = {};
-    adfSettings[0].forEach((key, value) {
-      if (value is Map) {
-        values['${key}Value'] = value["default"];
-      }
-    });
-    return values;
-  }
-
-  getIndex(adfSettingsState, result) {
-    int index = 99;
-    if (adfSettingsState.values.isNotEmpty) {
-      List valueList = adfSettingsState.values.values.toList();
-      List vList = [
-        result[6].toDouble(),
-        result[7].toDouble(),
-        result[8].toDouble()
-      ];
-
-      if (valueList.length == vList.length) {
-        for (int i = 0; i < valueList.length; i++) {
-          if (valueList[i] != vList[i]) {
-            index = i;
-            break;
-          }
-        }
-      } else {
-        print('The lists have different lengths and cannot be compared.');
-      }
-    }
-    return index;
-  }
-
-  getDeviceValue(settings, result) {
-    Map<String, dynamic> values = {};
-    settings[result[5]].forEach((key, value) {
-      if (value is Map) {
-        double keyValue;
-        if (result[keys.indexOf(key) + 6] > value["max"]) {
-          keyValue = value["max"];
-        } else if (result[keys.indexOf(key) + 6] < value["min"]) {
-          keyValue = value["min"];
-        } else {
-          keyValue = result[keys.indexOf(key) + 6].toDouble();
-        }
-        values['${key}Value'] = keyValue;
-      }
-    });
-    return values;
-  }
-
-  String getFirstKeyWithObject(Map<String, dynamic> data) {
-    for (var key in data.keys) {
-      if (data[key] is Map) {
-        return key;
-      }
-    }
-    return "";
   }
 
   String getStatue(BluetoothDevice? device) {
