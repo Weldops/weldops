@@ -13,19 +13,18 @@ class CustomGridView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final bluetoothDevice = ref.watch(bluetoothNotifierProvider);
+
     String getStatue(BluetoothDevice? device, Map<String, dynamic> btd) {
       String status = 'Disconnected';
-      if (device?.remoteId.str == btd['deviceId']) {
-        status = device!.isConnected
+      if (device != null && device.remoteId.str.toLowerCase() == btd['deviceId'].toLowerCase()) {
+        status = device.isConnected
             ? AppLocalizations.of(context)!.connected
             : 'Disconnected';
-      } else {
-        status = 'Disconnected';
       }
       return status;
     }
 
-    final bluetoothDevice = ref.watch(bluetoothNotifierProvider);
     final screenWidth = MediaQuery.of(context).size.width;
     handleSelectDevice(device) async {
       Navigator.pushNamed(context, '/adfSettings',
@@ -68,7 +67,7 @@ class CustomGridView extends ConsumerWidget {
             );
           }
 
-          final deviceIndex = index > 0 ? index - 1 : 0;
+          final deviceIndex = index >  0 ? index - 1 : index;
           final device = devicesList[deviceIndex];
           final name = device['deviceName'];
           final status = getStatue(bluetoothDevice.device, device);
