@@ -49,55 +49,68 @@ class _PairBottomSheetState extends ConsumerState<PairBottomSheet> {
         return;
       }
       ref.read(addDeviceStateNotifierProvider.notifier).startConnecting();
-      final result = await ref
-          .read(bluetoothNotifierProvider.notifier)
-          .connect(widget.device);
-      if (result == 'true') {
-        try {
-          await Future.delayed(
-            Duration(seconds: 2),
-            () async {
-              BluetoothCharacteristic? readChar;
-              BluetoothCharacteristic? writeChar;
-              List<BluetoothService> services =
-                  await widget.device.discoverServices();
-              for (BluetoothService s in services) {
-                for (BluetoothCharacteristic x in s.characteristics) {
-                  if (x.uuid.str
-                      .toLowerCase()
-                      .contains("00983eb5-09d2-b812-af50-5f6801581ea8")) {
-                    writeChar = x;
-                  }
-                  if (x.uuid.str
-                      .toLowerCase()
-                      .contains("adb52d0e-297b-493b-af50-b68c4efb4a9b")) {
-                    readChar = x;
-                  }
+
+      try {
+        final result = await ref
+            .read(bluetoothNotifierProvider.notifier)
+            .connect(widget.device);
+
+        if (result == 'true') {
+          await Future.delayed(Duration(seconds: 2));
+
+          List<BluetoothService> services = await widget.device.discoverServices();
+          BluetoothService? targetService;
+          BluetoothCharacteristic? readChar;
+          BluetoothCharacteristic? writeChar;
+
+          for (BluetoothService s in services) {
+            print("211122111211 services${s.toString()}");
+            final serviceUuid = s.uuid.toString().toLowerCase();
+
+            if (serviceUuid.endsWith("ae30")) {
+              targetService = s;
+              for (BluetoothCharacteristic x in s.characteristics) {
+                final uuid = x.uuid.toString().toLowerCase();
+                print("211122111211${uuid.toString()}");
+                if (uuid.endsWith("ae02")) {
+                  readChar = x;
+                }
+                if (uuid.endsWith("ae01")) {
+                  writeChar = x;
                 }
               }
-              if (mounted) {
-                ref
-                    .read(bluetoothNotifierProvider.notifier)
-                    .setDevice(widget.device, readChar, writeChar);
-              }
-            },
-          );
-          ref.read(homeStateNotifierProvider.notifier).addDevice(Device(
-              deviceId: widget.device.remoteId.str,
-              deviceModel: widget.device.platformName,
-              deviceName: widget.device.platformName,
-              displayName: nicknameController.text.trim(),
-              macAddress: widget.device.remoteId.str,
-              imageUrl: 'assets/images/helmet_image.png',
-              createdAt: DateTime.now(),
-              data: 'data'));
-          ref.read(addDeviceStateNotifierProvider.notifier).connectionSuccess();
-        } catch (e) {
+            }
+          }
+
+          if (targetService != null && readChar != null && writeChar != null) {
+            if (mounted) {
+               ref
+                  .read(bluetoothNotifierProvider.notifier)
+                  .setDevice(widget.device, readChar, writeChar);
+
+                }
+            ref.read(homeStateNotifierProvider.notifier).addDevice(Device(
+                deviceId: widget.device.remoteId.str,
+                deviceModel: widget.device.platformName,
+                deviceName: widget.device.platformName,
+                displayName: nicknameController.text.trim(),
+                macAddress: widget.device.remoteId.str,
+                imageUrl: 'assets/images/helmet_image.png',
+                createdAt: DateTime.now(),
+                data: 'data'));
+
+            ref.read(addDeviceStateNotifierProvider.notifier).connectionSuccess();
+
+          } else {
+            print("Failed to find ae30 service or required characteristics");
+            ref.read(addDeviceStateNotifierProvider.notifier).connectionFailure();
+          }
+        } else {
+          print("Else in connectToHelmet:");
           ref.read(addDeviceStateNotifierProvider.notifier).connectionFailure();
         }
-
-        // Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-      } else {
+      } catch (e) {
+        print('Error in connectToHelmet: $e');
         ref.read(addDeviceStateNotifierProvider.notifier).connectionFailure();
       }
     }
@@ -210,8 +223,8 @@ class _PairBottomSheetState extends ConsumerState<PairBottomSheet> {
                     height: 30,
                   ),
                   Image.asset(AppImages.helmet1, height: 160),
-                  const Text(
-                    'Sentinel A70 Bay1',
+                   Text(
+                    widget.device.advName,
                     style: AppTextStyles.secondaryTextStyle,
                   ),
                   const SizedBox(

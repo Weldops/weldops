@@ -8,6 +8,7 @@ import 'package:esab/features/adf_settings/domain/use_cases/save_adf_settings_us
 import 'package:esab/features/adf_settings/domain/use_cases/update_adf_memory_use_case.dart';
 import 'package:esab/features/adf_settings/presentation/screens/provider/state/adf_settings_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
   final GetAdfSettingUseCase _getUseCase = injector.get<GetAdfSettingUseCase>();
@@ -107,7 +108,8 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
   }
 
   void setWorkingType(String workingType) async {
-    await _bluetoothDeviceNotifier.write(getValue(null, null, workingType));
+    List<int> command = await getValue(null, null, state.workingType ?? 'welding');
+    _bluetoothDeviceNotifier.write(command);
     state = AdfSettingsState(
         configType: state.configType,
         deviceId: state.deviceId,
@@ -132,46 +134,105 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
     state = state.copyWith(configType: configType);
   }
 
-  void increaseGaugeValue(double value, String key, double max) {
-    Map<String, double> newGaugeValue = Map.from(state.values);
-    newGaugeValue['${key}Value'] = (value + 1).toDouble();
-    if (newGaugeValue['${key}Value']! > max) {
-      newGaugeValue['${key}Value'] = max;
-    } else {
-      _bluetoothDeviceNotifier.write(
-          getValue(newGaugeValue['${key}Value']!, key, state.workingType!));
-    }
 
-    state = state.copyWith(values: newGaugeValue);
-  }
-
-  List<int> getValue(
+  Future<List<int>> getValue(
     double? newValue,
     String? key,
     String type,
-  ) {
-    List mode = ['welding', 'cutting'];
-    List<String> keys = ['shade', 'sensitivity', 'delay'];
+  ) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int weldShade = prefs.getInt("weldShade") ?? 0;
+    int cuttingShade = prefs.getInt("cuttingShade") ?? 0;
+    List<String> mode = ['welding', 'cutting'];
+
     int modeIndex = mode.indexOf(type.toLowerCase());
-    List valueList = state.values.values.toList();
-    if (key != null) {
-      valueList[keys.indexOf(key)] = newValue;
-    }
-    List<int> intValueList =
-        valueList.map((value) => (value as double).toInt()).toList();
-    return [1, 4, modeIndex, ...intValueList];
-  }
-
-  void decreaseGaugeValue(double value, String key, double min) {
-    Map<String, double> newGaugeValue = Map.from(state.values);
-    newGaugeValue['${key}Value'] = value - 1;
-    if (newGaugeValue['${key}Value']! < min) {
-      newGaugeValue['${key}Value'] = min;
-    } else {
-      _bluetoothDeviceNotifier.write(
-          getValue(newGaugeValue['${key}Value']!, key, state.workingType!));
+    if (modeIndex <= 0) {
+      modeIndex = 1;
+    } else{
+      modeIndex = 2;
     }
 
-    state = state.copyWith(values: newGaugeValue);
+    double currentShade = state.values['shadeValue'] ?? 8.0;
+    double currentSensitivity = state.values['sensitivityValue'] ?? 3.0;
+    double currentDelay = state.values['delayValue'] ?? 3.0;
+    // / Update specific value if key is provided
+    if (key != null && newValue != null) {
+      switch (key.toLowerCase()) {
+        case 'shade':
+          currentShade = newValue;
+          if (modeIndex == 1) {
+            weldShade = (newValue * 10).round();
+            await prefs.setInt("weldShade", weldShade);
+          } else {
+            cuttingShade = (newValue * 10).round();
+            await prefs.setInt("cuttingShade", cuttingShade);
+          }
+          break;
+        case 'sensitivity':
+          currentSensitivity = newValue;
+          break;
+        case 'delay':
+          currentDelay = newValue;
+          break;
+      }
+    }
+
+    // Convert to int values (shade needs *10 precision)
+    List<int> intValueList = [
+      weldShade, // Weld Shade
+      cuttingShade, // Cutting Shade
+      currentSensitivity.round(), // Sensitivity
+      currentDelay.round(), // Delay
+    ];
+
+    // Construct the full Bluetooth command
+    List<int> command = [
+      0xEA, 0x01, 0x03, 0x02, // Header
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Padding
+      modeIndex, // Mode type (welding or cutting)
+      ...intValueList, // Weld Shade, Cutting Shade, Sensitivity, Delay
+      8, 0, 0, // Additional settings (percentage, memory, setting)
+      0xBA, 0xDC // Checksum
+    ];
+
+    print('Sending command: $command');
+    print('Sending command: ${command.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(', ')}');
+
+    return command;
   }
+
+  Future<void> increaseGaugeValue(double value, String key, double max) async {
+    try {
+      Map<String, double> newGaugeValue = Map.from(state.values);
+      double increment = key.toLowerCase() == 'shade' ? 0.5 : 1.0;
+      double newValue = value + increment;
+
+      if (newValue <= max) {
+        newGaugeValue['${key}Value'] = newValue;
+        state = state.copyWith(values: newGaugeValue);
+        List<int> command = await getValue(newValue, key, state.workingType ?? 'welding');
+        _bluetoothDeviceNotifier.write(command);
+      }
+    } catch (e) {
+      print('Error in increaseGaugeValue: $e');
+    }
+  }
+
+  Future<void> decreaseGaugeValue(double value, String key, double min) async {
+    try {
+      Map<String, double> newGaugeValue = Map.from(state.values);
+      double decrement = key.toLowerCase() == 'shade' ? 0.5 : 1.0;
+      double newValue = value - decrement;
+
+      if (newValue >= min) {
+        newGaugeValue['${key}Value'] = newValue;
+        state = state.copyWith(values: newGaugeValue);
+        List<int> command = await getValue(newValue, key, state.workingType ?? 'welding');
+        _bluetoothDeviceNotifier.write(command);
+      }
+    } catch (e) {
+      print('Error in decreaseGaugeValue: $e');
+    }
+  }
+
 }

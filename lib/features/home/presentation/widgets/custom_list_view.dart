@@ -17,8 +17,8 @@ class CustomListView extends ConsumerWidget {
 
     String getStatue(BluetoothDevice? device, Map<String, dynamic> btd) {
       String status = 'Disconnected';
-      if (device?.remoteId.str == btd['deviceId']) {
-        status = device!.isConnected
+      if (device != null && device.remoteId.str.toLowerCase() == btd['deviceId'].toLowerCase()) {
+        status = device.isConnected
             ? AppLocalizations.of(context)!.connected
             : 'Disconnected';
       } else {

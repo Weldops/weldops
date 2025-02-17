@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:esab/bluetooth/presentation/provider/bluetooth_device_state_notifier.dart';
 import 'package:esab/features/adf_settings/presentation/screens/provider/adf_settings_state_notifier.dart';
@@ -43,6 +42,8 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
   void initState() {
     super.initState();
     init();
+    ref.read(adfSettingStateNotifierProvider.notifier).setWorkingType('welding');
+
     startFetchingValues();
   }
 
@@ -70,52 +71,92 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
     });
   }
 
-  fetchHelmetData(type) async {
+
+  Future<void> fetchHelmetData(type) async {
     final deviceState = ref.watch(bluetoothNotifierProvider);
-    final adfSettingsState = ref.watch(adfSettingStateNotifierProvider);
-    final String response =
-        await rootBundle.loadString('assets/data/helmet.json');
-    final data = json.decode(response);
-
-    final List<dynamic> helmets = data['helmets'];
-
-    final Map<String, dynamic> selectedHelmet = helmets.firstWhere(
-      (helmet) => helmet['modelName'] == widget.device['deviceName'],
-      orElse: () => helmets.firstWhere(
-        (helmet) => helmet['modelName'] == "default",
-      ),
-    );
-    helmet = selectedHelmet;
-    adfSettings = helmet['adfSettings'];
-    dynamic result = 'error';
-    if (deviceState.device != null) {
-      if (deviceState.device!.isConnected) {
-        result = await ref.read(bluetoothNotifierProvider.notifier).read(false);
-      }
+    if (deviceState.device == null) {
+      print("❌ Device is not connected");
+      return;
     }
-    Map<String, dynamic> values = {};
-    int index = 99;
-    if (result is List<int>) {
-      values = getDeviceValue(adfSettings, result);
-      index = getIndex(adfSettingsState, result);
-    } else {
-      values = getDefaultValue();
-    }
-    setState(() {
-      if (type) {
-        final settings = result is List<int>
-            ? adfSettings[result[5]]['modeType']
-            : adfSettingsState.workingType ?? adfSettings[0]['modeType'];
-        Future.microtask(() {
-          ref.read(adfSettingStateNotifierProvider.notifier).init(
-              settings,
-              index == 99
-                  ? adfSettingsState.configType ?? keys[0]
-                  : keys[index],
-              values);
+
+    print("🔗 Device is connected. Setting up notifications...");
+    try {
+      final state = ref.watch(bluetoothNotifierProvider);
+      if (state.readCharacteristic != null) {
+        print("✅ Enabling notifications for ${state.readCharacteristic?.serviceUuid}");
+        await state.readCharacteristic!.setNotifyValue(true);
+
+        state.readCharacteristic!.onValueReceived.listen((value) {
+          print("7878Received Data from Helmet: $value");
+          if (mounted) {
+            setState(() {
+              Map<String, dynamic> helmetJson = convertBluetoothDataToJson(value);
+              helmet = helmetJson;
+              adfSettings = helmetJson['adfSettings'];
+              print("Updated Welding Shade: ${adfSettings[0]['shade']['default']}");
+              print("Updated Cutting Shade: ${adfSettings[1]['shade']['default']}");            });
+          }
         });
+      } else {
+        print("❌ Read characteristic not found");
       }
-    });
+    } catch (e) {
+      print("❌ Error setting up characteristic notifications: $e");
+    }
+  }
+
+
+  Map<String, dynamic> convertBluetoothDataToJson(List<int> data) {
+    print("121121212121${data.toString()}");
+    bool isWeldingFirst = data[10] == 1;
+
+    String firstMode = isWeldingFirst ? "Welding" : "Cutting";
+    String secondMode = isWeldingFirst ? "Cutting" : "Welding";
+// Separate welding and cutting shade values
+    double weldingShade = data[11].toDouble() / 10;
+    double cuttingShade = data[12].toDouble() / 10;
+    print("121121212121${isWeldingFirst}");
+    print("121121212121  1st mode${firstMode}");
+    print("121121212121 2nd mode ${secondMode}");
+    return {
+      "modelId": widget.device['deviceId'],
+      "modelName": widget.device['deviceName'],
+      "imageUrl": "assets/images/helmet_image.png",
+      "adfSettings": [
+        {
+          "modeType": "Welding",
+          "image": "assets/images/welding_img.png",
+          "shade": {
+            "image": "assets/images/shade_img.png",
+            "min": 5.0,
+            "max": 13.0,
+            "default": weldingShade
+          },
+          "sensitivity": {
+            "image": "assets/images/sensitivity_img.png",
+            "min": 0.0,
+            "max": 5.0,
+            "default": data[13].toDouble()
+          },
+          "delay": {
+            "image": "assets/images/delay_img.png",
+            "min": 0.0,
+            "max": 5.0,
+            "default": data[14].toDouble()
+          }
+        },
+        {
+          "modeType": "Cutting",
+          "image": "assets/images/cutting_img.png",
+          "shade": {
+            "image": "assets/images/shade_img.png",
+            "min": 5.0,
+            "max": 13.0,
+            "default": cuttingShade
+          }
+        }
+      ]
+    };
   }
 
   void startFetchingValues() {
@@ -206,7 +247,7 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
 
     final adfSettingsState = ref.watch(adfSettingStateNotifierProvider);
     List<AdfSettingsState> memories =
-        ref.watch(memoryStateNotifierProvider).reversed.toList();
+    ref.watch(memoryStateNotifierProvider).reversed.toList();
     print("adfSettings: $adfSettings");
     print("workingType: ${adfSettingsState.workingType}");
     removeDevice() async {
@@ -367,52 +408,52 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
               horizontal: screenWidth * 0.06, vertical: screenHeight * 0.04),
           child: adfSettingsState.workingType != null
               ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    WeldingCuttingSelection(
-                      modeList: adfSettings,
-                    ),
-                    if (helmet['adfSettings'] != null)
-                      ...adfSettings.map((x) {
-                        if (adfSettingsState.workingType!.toLowerCase() ==
-                            x['modeType'].toLowerCase()) {
-                          bool isCuttingMode = x['modeType'].toLowerCase() == 'cutting';
-                          return Column(
-                            children: [
-                              GaugeIndicator(
-                                values: x,
-                                isCuttingMode: isCuttingMode,
-                              ),
-                              AdfConfigTypes(
-                                values: x,
-                                isCuttingMode: isCuttingMode,
-                              ),
-                            ],
-                          );
-                        } else {
-                          return const SizedBox(
-                            width: 0,
-                            height: 0,
-                          );
-                        }
-                      }),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    const Divider(
-                      color: AppColors.cardBgColor,
-                      thickness: 1,
-                      indent: 16,
-                      endIndent: 16,
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    AdfFeatureTypes(
-                      device: widget.device,
-                    )
-                  ],
-                )
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              WeldingCuttingSelection(
+                modeList: adfSettings,
+              ),
+              if (helmet['adfSettings'] != null)
+                ...adfSettings.map((x) {
+                  if (adfSettingsState.workingType!.toLowerCase() ==
+                      x['modeType'].toLowerCase()) {
+                    bool isCuttingMode = x['modeType'].toLowerCase() == 'cutting';
+                    return Column(
+                      children: [
+                        GaugeIndicator(
+                          values: x,
+                          isCuttingMode: isCuttingMode,
+                        ),
+                        AdfConfigTypes(
+                          values: x,
+                          isCuttingMode: isCuttingMode,
+                        ),
+                      ],
+                    );
+                  } else {
+                    return const SizedBox(
+                      width: 0,
+                      height: 0,
+                    );
+                  }
+                }),
+              const SizedBox(
+                height: 10,
+              ),
+              const Divider(
+                color: AppColors.cardBgColor,
+                thickness: 1,
+                indent: 16,
+                endIndent: 16,
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              AdfFeatureTypes(
+                device: widget.device,
+              )
+            ],
+          )
               : const SizedBox(),
         ),
       ),
