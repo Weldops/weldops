@@ -28,35 +28,31 @@ class GaugeIndicator extends ConsumerWidget {
     (adfSettingsState.configType?.toLowerCase() ?? 'shade');
     String type = configType;
 
-    final configValues = values[configType] as Map<String, dynamic>;
+    final configValues = values[configType] as Map<String, dynamic>? ?? {};
+    if (configValues.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     double minGaugeValue = configValues['min'];
     double maxGaugeValue = configValues['max'];
     double defaultGaugeValue = configValues['default'];
 
     final screenWidth = MediaQuery.of(context).size.width;
 
-    setValue(double value) async {
-      if (device.writeCharacteristic != null &&
-          device.readCharacteristic != null) {
-        final data = value.toInt().toString();
-        List<int> utf8Bytes = [25, data.length, ...utf8.encode(data)];
-
-        await ref.read(bluetoothNotifierProvider.notifier).write(utf8Bytes);
-      } else {}
+    Future<void> increaseGaugeValue(double value, String key, double max) async {
+      if (value < max) {
+         // Use the existing notifier method
+        ref.read(adfSettingStateNotifierProvider.notifier)
+            .increaseGaugeValue(value, key, max);
+      }
     }
 
-    increaseGaugeValue(double value, String key, double max) async {
-      await setValue(value + 1);
-      ref
-          .read(adfSettingStateNotifierProvider.notifier)
-          .increaseGaugeValue(value, key, max);
-    }
-
-    decreaseGaugeValue(double value, String key, double min) async {
-      await setValue(value - 1);
-      ref
-          .read(adfSettingStateNotifierProvider.notifier)
-          .decreaseGaugeValue(value, key, min);
+    Future<void> decreaseGaugeValue(double value, String key, double min) async {
+      if (value > min) {
+        // Use the existing notifier method
+        ref.read(adfSettingStateNotifierProvider.notifier)
+            .decreaseGaugeValue(value, key, min);
+      }
     }
 
     List<GaugeSegment> getGaugeSegments(String configType) {
@@ -67,29 +63,26 @@ class GaugeIndicator extends ConsumerWidget {
       for (int i = 0; i < blocksRange; i++) {
         double from = minGaugeValue + (i * segmentSize);
         double to = from + segmentSize;
-
-        Color segmentColor = AppColors.cardBgColor;
-
         segments.add(
           GaugeSegment(
             from: from,
             to: to,
-            color: segmentColor,
+            color: AppColors.cardBgColor,
           ),
         );
       }
       return segments;
     }
 
-    getAdfSettingValue(String configType) {
-      return adfSettingsState.values['${configType.toLowerCase()}Value'] ??
-          defaultGaugeValue;
+    double getAdfSettingValue(String configType) {
+        return adfSettingsState.values['ShadeValue'] ??
+            defaultGaugeValue ??
+            minGaugeValue;
     }
 
     return Stack(
       alignment: Alignment.center,
       children: [
-        // The Gauge
         AnimatedRadialGauge(
           duration: const Duration(seconds: 0),
           radius: 240,
@@ -114,8 +107,11 @@ class GaugeIndicator extends ConsumerWidget {
             children: [
               GestureDetector(
                 onTap: () {
-                  decreaseGaugeValue(getAdfSettingValue(type).toDouble(),
-                      type.toLowerCase(), minGaugeValue);
+                  decreaseGaugeValue(
+                      getAdfSettingValue(type).toDouble(),
+                      type.toLowerCase(),
+                      minGaugeValue
+                  );
                 },
                 child: Container(
                   height: 32,
@@ -131,16 +127,19 @@ class GaugeIndicator extends ConsumerWidget {
                   ),
                 ),
               ),
-              SizedBox(width: screenWidth * 0.05),
+              SizedBox(width: screenWidth * 0.02),
               Text(
-                value.toInt().toString(),
+                value.toDouble().toString(),
                 style: AppTextStyles.meterValueText,
               ),
-              SizedBox(width: screenWidth * 0.05),
+              SizedBox(width: screenWidth * 0.02),
               GestureDetector(
                 onTap: () {
-                  increaseGaugeValue(getAdfSettingValue(type).toDouble(),
-                      type.toLowerCase(), maxGaugeValue);
+                  increaseGaugeValue(
+                      getAdfSettingValue(type).toDouble(),
+                      type.toLowerCase(),
+                      maxGaugeValue
+                  );
                 },
                 child: Container(
                   height: 32,
