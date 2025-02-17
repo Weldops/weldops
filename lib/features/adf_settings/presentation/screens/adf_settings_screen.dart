@@ -72,10 +72,47 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
   }
 
 
+  // Future<void> fetchHelmetData(type) async {
+  //   final deviceState = ref.watch(bluetoothNotifierProvider);
+  //   if (deviceState.device == null) {
+  //     print("❌ Device is not connected");
+  //     return;
+  //   }
+  //
+  //   print("🔗 Device is connected. Setting up notifications...");
+  //   try {
+  //     final state = ref.watch(bluetoothNotifierProvider);
+  //     if (state.readCharacteristic != null) {
+  //       print("✅ Enabling notifications for ${state.readCharacteristic?.serviceUuid}");
+  //       await state.readCharacteristic!.setNotifyValue(true);
+  //
+  //       state.readCharacteristic!.onValueReceived.listen((value) {
+  //         print("7878Received Data from Helmet: $value");
+  //         if (mounted) {
+  //           setState(() {
+  //             Map<String, dynamic> helmetJson = convertBluetoothDataToJson(value);
+  //             helmet = helmetJson;
+  //             adfSettings = helmetJson['adfSettings'];
+  //             print("Updated Welding Shade: ${adfSettings[0]['shade']['default']}");
+  //             print("Updated Cutting Shade: ${adfSettings[1]['shade']['default']}");            });
+  //         }
+  //       });
+  //     } else {
+  //       print("❌ Read characteristic not found");
+  //     }
+  //   } catch (e) {
+  //     print("❌ Error setting up characteristic notifications: $e");
+  //   }
+  // }
+
   Future<void> fetchHelmetData(type) async {
     final deviceState = ref.watch(bluetoothNotifierProvider);
     if (deviceState.device == null) {
       print("❌ Device is not connected");
+      setState(() {
+        helmet = convertBluetoothDataToJson([]); // Load default values
+        adfSettings = helmet['adfSettings'];
+      });
       return;
     }
 
@@ -87,14 +124,23 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
         await state.readCharacteristic!.setNotifyValue(true);
 
         state.readCharacteristic!.onValueReceived.listen((value) {
-          print("7878Received Data from Helmet: $value");
+          print("📩 Received Data from Helmet: $value");
+
+          if (value.isEmpty) {
+            print("⚠️ Empty Bluetooth data received, applying default values.");
+            setState(() {
+              helmet = convertBluetoothDataToJson([]); // Apply default values
+              adfSettings = helmet['adfSettings'];
+            });
+            return;
+          }
+
           if (mounted) {
             setState(() {
               Map<String, dynamic> helmetJson = convertBluetoothDataToJson(value);
               helmet = helmetJson;
               adfSettings = helmetJson['adfSettings'];
-              print("Updated Welding Shade: ${adfSettings[0]['shade']['default']}");
-              print("Updated Cutting Shade: ${adfSettings[1]['shade']['default']}");            });
+            });
           }
         });
       } else {
@@ -107,57 +153,99 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
 
 
   Map<String, dynamic> convertBluetoothDataToJson(List<int> data) {
-    print("121121212121${data.toString()}");
-    bool isWeldingFirst = data[10] == 1;
+    if (data.isEmpty ) {
+      print("⚠️ Invalid Bluetooth data, returning defaults.");
+      return {
+        "modelId": widget.device['deviceId'] ?? "default",
+        "modelName": widget.device['deviceName'] ?? "default",
+        "imageUrl": "assets/images/helmet_image.png",
+        "adfSettings": [
+          {
+            "modeType": "Welding",
+            "image": "assets/images/welding_img.png",
+            "shade": {
+              "image": "assets/images/shade_img.png",
+              "min": 5.0,
+              "max": 13.0,
+              "default": 10.0
+            },
+            "sensitivity": {
+              "image": "assets/images/sensitivity_img.png",
+              "min": 0.0,
+              "max": 5.0,
+              "default": 5.0
+            },
+            "delay": {
+              "image": "assets/images/delay_img.png",
+              "min": 0.0,
+              "max": 5.0,
+              "default": 5.0
+            }
+          },
+          {
+            "modeType": "Cutting",
+            "image": "assets/images/cutting_img.png",
+            "shade": {
+              "image": "assets/images/shade_img.png",
+              "min": 5.0,
+              "max": 13.0,
+              "default": 10.0
+            }
+          }
+        ]
+      };
+    }
 
-    String firstMode = isWeldingFirst ? "Welding" : "Cutting";
-    String secondMode = isWeldingFirst ? "Cutting" : "Welding";
-// Separate welding and cutting shade values
-    double weldingShade = data[11].toDouble() / 10;
-    double cuttingShade = data[12].toDouble() / 10;
-    print("121121212121${isWeldingFirst}");
-    print("121121212121  1st mode${firstMode}");
-    print("121121212121 2nd mode ${secondMode}");
-    return {
-      "modelId": widget.device['deviceId'],
-      "modelName": widget.device['deviceName'],
-      "imageUrl": "assets/images/helmet_image.png",
-      "adfSettings": [
-        {
-          "modeType": "Welding",
-          "image": "assets/images/welding_img.png",
-          "shade": {
-            "image": "assets/images/shade_img.png",
-            "min": 5.0,
-            "max": 13.0,
-            "default": weldingShade
+    try {
+      bool isWeldingFirst = data[10] == 1;
+      double weldingShade = data[11].toDouble() / 10;
+      double cuttingShade = data[12].toDouble() / 10;
+       print("121212321312${isWeldingFirst}");
+      return {
+        "modelId": widget.device['deviceId'],
+        "modelName": widget.device['deviceName'],
+        "imageUrl": "assets/images/helmet_image.png",
+        "adfSettings": [
+          {
+            "modeType": "Welding",
+            "image": "assets/images/welding_img.png",
+            "shade": {
+              "image": "assets/images/shade_img.png",
+              "min": 5.0,
+              "max": 13.0,
+              "default": weldingShade
+            },
+            "sensitivity": {
+              "image": "assets/images/sensitivity_img.png",
+              "min": 0.0,
+              "max": 5.0,
+              "default": data[13].toDouble()
+            },
+            "delay": {
+              "image": "assets/images/delay_img.png",
+              "min": 0.0,
+              "max": 5.0,
+              "default": data[14].toDouble()
+            }
           },
-          "sensitivity": {
-            "image": "assets/images/sensitivity_img.png",
-            "min": 0.0,
-            "max": 5.0,
-            "default": data[13].toDouble()
-          },
-          "delay": {
-            "image": "assets/images/delay_img.png",
-            "min": 0.0,
-            "max": 5.0,
-            "default": data[14].toDouble()
+          {
+            "modeType": "Cutting",
+            "image": "assets/images/cutting_img.png",
+            "shade": {
+              "image": "assets/images/shade_img.png",
+              "min": 5.0,
+              "max": 13.0,
+              "default": cuttingShade
+            }
           }
-        },
-        {
-          "modeType": "Cutting",
-          "image": "assets/images/cutting_img.png",
-          "shade": {
-            "image": "assets/images/shade_img.png",
-            "min": 5.0,
-            "max": 13.0,
-            "default": cuttingShade
-          }
-        }
-      ]
-    };
+        ]
+      };
+    } catch (e) {
+      print("❌ Error parsing Bluetooth data: $e");
+      return convertBluetoothDataToJson([]); // Return default values
+    }
   }
+
 
   void startFetchingValues() {
     _timer = Timer.periodic(const Duration(seconds: 4), (timer) async {
