@@ -29,28 +29,6 @@ class BluetoothDeviceNotifier extends StateNotifier<BtDeviceState> {
     print("After setting device - New state: ${state.device?.remoteId}");
   }
 
-  Future<void> enableNotifications() async {
-    if (state.readCharacteristic == null) {
-      print("❌ Read characteristic is null, cannot enable notifications.");
-      return;
-    }
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    try {
-      await state.readCharacteristic!.setNotifyValue(true);
-      state.readCharacteristic!.onValueReceived.listen((value) async {
-        print("📥 Received Data from Helmet: $value");
-        await prefs.setInt("weldShade", value[11]);
-        await prefs.setInt("cuttingShade", value[12]);
-        convertBluetoothDataToJson(value);
-      });
-
-      print("✅ Notifications enabled on ${state.readCharacteristic!.uuid}");
-    } catch (e) {
-      print("❌ Error enabling notifications: $e");
-    }
-  }
-
   Future<void> read() async {
     if (state.readCharacteristic == null) {
       print("❌ Read characteristic is null, cannot read.");
@@ -79,57 +57,6 @@ class BluetoothDeviceNotifier extends StateNotifier<BtDeviceState> {
     } catch (e) {
       print("❌ Error writing data: $e");
     }
-  }
-  Future<Map<String, dynamic>> convertBluetoothDataToJson(List<int> data) async {
-    // Determine the primary mode based on data[10]
-    bool isWeldingFirst = data[10] == 1;
-    String firstMode = isWeldingFirst ? "Welding" : "Cutting";
-    String secondMode = isWeldingFirst ? "Cutting" : "Welding";
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    int? weldValue = prefs.getInt("weldShade");
-    int? cuttingValue = prefs.getInt("cuttingShade", );
-    // handleSelectWelding(firstMode);
-
-    return {
-      "modelId":'deviceId',
-      "modelName": 'deviceName',
-      "imageUrl": "assets/images/helmet_image.png",
-      "adfSettings": [
-        {
-          "modeType": firstMode,
-          "image": "assets/images/welding_img.png",
-          "shade": {
-            "image": "assets/images/shade_img.png",
-            "min": 5.0,
-            "max": 13.0,
-            "default": weldValue
-          },
-          "sensitivity": {
-            "image": "assets/images/sensitivity_img.png",
-            "min": 0.0,
-            "max": 5.0,
-            "default": data[13].toDouble()
-          },
-          "delay": {
-            "image": "assets/images/delay_img.png",
-            "min": 0.0,
-            "max": 5.0,
-            "default": data[14].toDouble()
-          }
-        },
-        {
-          "modeType": secondMode,
-          "image": "assets/images/cutting_img.png",
-          "shade": {
-            "image": "assets/images/shade_img.png",
-            "min": 5.0,
-            "max": 13.0,
-            "default": cuttingValue
-          }
-        }
-      ]
-    };
   }
 
   Future<String> connect(BluetoothDevice device) async {
