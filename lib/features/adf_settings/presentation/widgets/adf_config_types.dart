@@ -41,9 +41,10 @@ class AdfConfigTypes extends ConsumerWidget {
               } else {
                 widthFactor = 0.33;
               }
-              bool isSelected = isCuttingMode
-                  ? (key == 'shade')
-                  : (adfSettingsState.configType == key);
+              bool isSelected = (adfSettingsState.configType == null && key == 'shade') || (isCuttingMode
+                  ? (key == 'shade'):
+                  (adfSettingsState.configType?.toLowerCase() == key));
+
               return FractionallySizedBox(
                 widthFactor: widthFactor,
                 child: GestureDetector(

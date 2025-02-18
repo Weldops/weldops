@@ -53,7 +53,7 @@ class AdfConfigCard extends StatelessWidget {
                 ],
               ),
               Text(
-                value.toInt().toString(),
+                name == 'Shade'? value.toDouble().toString():value.toInt().toString(),
                 style: isSelected
                     ? AppTextStyles.buttonTextStyle
                     : AppTextStyles.secondaryRegularText,
