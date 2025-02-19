@@ -3,7 +3,6 @@ import 'package:esab/features/add_device/presentation/screens/provider/add_devic
 import 'package:esab/features/home/presentation/providers/home_state_notifier_provider.dart';
 import 'package:esab/models/bluetooth_device.dart';
 import 'package:esab/shared/widgets/buttons/custom_button.dart';
-import 'package:esab/shared/widgets/inputs/outlined_input.dart';
 import 'package:esab/themes/app_text_styles.dart';
 import 'package:esab/utils/common.dart';
 import 'package:flutter/material.dart';
