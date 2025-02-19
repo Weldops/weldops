@@ -33,99 +33,27 @@ class _PairBottomSheetState extends ConsumerState<PairBottomSheet> {
     setState(() {
       nicknameController.text = widget.device.platformName;
     });
+    Future.delayed(Duration.zero, () {
+      connectToHelmet(widget.device,ref);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final addDeviceState = ref.watch(addDeviceStateNotifierProvider);
 
-    connectToHelmet() async {
-      ref.read(addDeviceStateNotifierProvider.notifier).connectionSuccess();
-
-      if (nicknameController.text.isEmpty) {
-        ref
-            .read(addDeviceStateNotifierProvider.notifier)
-            .setNickNameError(AppLocalizations.of(context)!.enterNickName);
-        return;
-      }
-      ref.read(addDeviceStateNotifierProvider.notifier).startConnecting();
-
-      try {
-        final result = await ref
-            .read(bluetoothNotifierProvider.notifier)
-            .connect(widget.device);
-
-        if (result == 'true') {
-          await Future.delayed(Duration(seconds: 2));
-
-          List<BluetoothService> services = await widget.device.discoverServices();
-          BluetoothService? targetService;
-          BluetoothCharacteristic? readChar;
-          BluetoothCharacteristic? writeChar;
-
-          for (BluetoothService s in services) {
-            print("211122111211 services${s.toString()}");
-            final serviceUuid = s.uuid.toString().toLowerCase();
-
-            if (serviceUuid.endsWith("ae30")) {
-              targetService = s;
-              for (BluetoothCharacteristic x in s.characteristics) {
-                final uuid = x.uuid.toString().toLowerCase();
-                print("211122111211${uuid.toString()}");
-                if (uuid.endsWith("ae02")) {
-                  readChar = x;
-                }
-                if (uuid.endsWith("ae01")) {
-                  writeChar = x;
-                }
-              }
-            }
-          }
-
-          if (targetService != null && readChar != null && writeChar != null) {
-            if (mounted) {
-               ref
-                  .read(bluetoothNotifierProvider.notifier)
-                  .setDevice(widget.device, readChar, writeChar);
-
-                }
-            ref.read(homeStateNotifierProvider.notifier).addDevice(Device(
-                deviceId: widget.device.remoteId.str,
-                deviceModel: widget.device.platformName,
-                deviceName: widget.device.platformName,
-                displayName: nicknameController.text.trim(),
-                macAddress: widget.device.remoteId.str,
-                imageUrl: 'assets/images/helmet_image.png',
-                createdAt: DateTime.now(),
-                data: 'data'));
-
-            ref.read(addDeviceStateNotifierProvider.notifier).connectionSuccess();
-
-          } else {
-            print("Failed to find ae30 service or required characteristics");
-            ref.read(addDeviceStateNotifierProvider.notifier).connectionFailure();
-          }
-        } else {
-          print("Else in connectToHelmet:");
-          ref.read(addDeviceStateNotifierProvider.notifier).connectionFailure();
-        }
-      } catch (e) {
-        print('Error in connectToHelmet: $e');
-        ref.read(addDeviceStateNotifierProvider.notifier).connectionFailure();
-      }
-    }
-
     getSheetHeading() {
-      if (addDeviceState.isInitial) {
-        return AppLocalizations.of(context)!.pairWithHelmet;
-      } else if (addDeviceState.isConnecting) {
+      // if (addDeviceState.isInitial) {
+      //   // return AppLocalizations.of(context)!.pairWithHelmet;
+      // } else
+        if (addDeviceState.isConnecting) {
         return AppLocalizations.of(context)!.connectingHelmet;
       } else if (addDeviceState.isConnectionSuccess) {
         return AppLocalizations.of(context)!.connectionSucces;
       } else if (addDeviceState.isConnectionFailure) {
         return AppLocalizations.of(context)!.connectionError;
       }
-      return AppLocalizations.of(context)!.pairWithHelmet;
+      return AppLocalizations.of(context)!.connectingHelmet;
     }
 
     closeSheet() {
@@ -163,40 +91,41 @@ class _PairBottomSheetState extends ConsumerState<PairBottomSheet> {
                     icon: const Icon(Icons.close)),
               ],
             ),
-            if (addDeviceState.isInitial)
-              Column(
-                children: [
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  OutlinedInputField(
-                    label: AppLocalizations.of(context)!.nickname,
-                    controller: nicknameController,
-                    errorText: addDeviceState.nicknameError.isNotEmpty
-                        ? addDeviceState.nicknameError
-                        : null,
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  OutlinedInputField(
-                    label: AppLocalizations.of(context)!.enterPairingCode,
-                    controller: pairingCodeController,
-                    showInfo: true,
-                  ),
-                  const SizedBox(
-                    height: 30,
-                  ),
-                  CustomButton(
-                    buttonText: AppLocalizations.of(context)!.connectHelmet,
-                    onTapCallback: connectToHelmet,
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                ],
-              )
-            else if (addDeviceState.isConnecting)
+            // if (!addDeviceState.isInitial)
+            //   Column(
+            //     children: [
+            //       const SizedBox(
+            //         height: 30,
+            //       ),
+            //       OutlinedInputField(
+            //         label: AppLocalizations.of(context)!.nickname,
+            //         controller: nicknameController,
+            //         errorText: addDeviceState.nicknameError.isNotEmpty
+            //             ? addDeviceState.nicknameError
+            //             : null,
+            //       ),
+            //       const SizedBox(
+            //         height: 10,
+            //       ),
+            //       OutlinedInputField(
+            //         label: AppLocalizations.of(context)!.enterPairingCode,
+            //         controller: pairingCodeController,
+            //         showInfo: true,
+            //       ),
+            //       const SizedBox(
+            //         height: 30,
+            //       ),
+            //       CustomButton(
+            //         buttonText: AppLocalizations.of(context)!.connectHelmet,
+            //         onTapCallback: connectToHelmet,
+            //       ),
+            //       const SizedBox(
+            //         height: 20,
+            //       ),
+            //     ],
+            //   )
+            // else
+              if (addDeviceState.isConnecting)
               Column(
                 children: [
                   const SizedBox(
@@ -301,5 +230,67 @@ class _PairBottomSheetState extends ConsumerState<PairBottomSheet> {
         ),
       ),
     );
+  }
+}
+
+void connectToHelmet(BluetoothDevice device,  ref) async {
+  final refNotifier = ref.read(addDeviceStateNotifierProvider.notifier);
+  refNotifier.connectionSuccess();
+
+  if (device.platformName.isEmpty) {
+    refNotifier.setNickNameError("Please enter a nickname");
+    return;
+  }
+  refNotifier.startConnecting();
+
+  try {
+    final result = await ref.read(bluetoothNotifierProvider.notifier).connect(device);
+
+    if (result == 'true') {
+      await Future.delayed(Duration(seconds: 2));
+
+      List<BluetoothService> services = await device.discoverServices();
+      BluetoothService? targetService;
+      BluetoothCharacteristic? readChar;
+      BluetoothCharacteristic? writeChar;
+
+      for (BluetoothService s in services) {
+        final serviceUuid = s.uuid.toString().toLowerCase();
+        if (serviceUuid.endsWith("ae30")) {
+          targetService = s;
+          for (BluetoothCharacteristic x in s.characteristics) {
+            final uuid = x.uuid.toString().toLowerCase();
+            if (uuid.endsWith("ae02")) readChar = x;
+            if (uuid.endsWith("ae01")) writeChar = x;
+          }
+        }
+      }
+
+      if (targetService != null && readChar != null && writeChar != null) {
+        ref.read(bluetoothNotifierProvider.notifier).setDevice(device, readChar, writeChar);
+
+        ref.read(homeStateNotifierProvider.notifier).addDevice(Device(
+          deviceId: device.remoteId.str,
+          deviceModel: device.platformName,
+          deviceName: device.platformName,
+          displayName: device.platformName, // Change if nickname is needed
+          macAddress: device.remoteId.str,
+          imageUrl: 'assets/images/helmet_image.png',
+          createdAt: DateTime.now(),
+          data: 'data',
+        ));
+
+        refNotifier.connectionSuccess();
+      } else {
+        print("Failed to find ae30 service or required characteristics");
+        refNotifier.connectionFailure();
+      }
+    } else {
+      print("Connection failed");
+      refNotifier.connectionFailure();
+    }
+  } catch (e) {
+    print('Error in connectToHelmet: $e');
+    refNotifier.connectionFailure();
   }
 }
