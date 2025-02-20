@@ -21,9 +21,6 @@ class GaugeIndicator extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final adfSettingsState = ref.watch(adfSettingStateNotifierProvider);
-    final device = ref.watch(bluetoothNotifierProvider);
-
-    // For cutting mode, always use shade configuration
     String configType = isCuttingMode ? 'shade' :
     (adfSettingsState.configType?.toLowerCase() ?? 'shade');
     String type = configType;
@@ -41,7 +38,6 @@ class GaugeIndicator extends ConsumerWidget {
 
     Future<void> increaseGaugeValue(double value, String key, double max) async {
       if (value < max) {
-         // Use the existing notifier method
         ref.read(adfSettingStateNotifierProvider.notifier)
             .increaseGaugeValue(value, key, max);
       }
@@ -49,7 +45,6 @@ class GaugeIndicator extends ConsumerWidget {
 
     Future<void> decreaseGaugeValue(double value, String key, double min) async {
       if (value > min) {
-        // Use the existing notifier method
         ref.read(adfSettingStateNotifierProvider.notifier)
             .decreaseGaugeValue(value, key, min);
       }
@@ -158,7 +153,6 @@ class GaugeIndicator extends ConsumerWidget {
             ],
           ),
         ),
-
         // Start and End Text
         Positioned(
           left: 8,

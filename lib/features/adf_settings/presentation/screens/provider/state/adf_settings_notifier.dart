@@ -31,7 +31,7 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
     return adfSettings.firstWhere(
       (setting) => setting.isSelected,
       orElse: () =>
-          AdfSettingsState(), // Return null if no matching element is found
+          AdfSettingsState(),
     );
   }
 
@@ -156,7 +156,7 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
     double currentShade = state.values['shadeValue'] ?? 8.0;
     double currentSensitivity = state.values['sensitivityValue'] ?? 3.0;
     double currentDelay = state.values['delayValue'] ?? 3.0;
-    // / Update specific value if key is provided
+    /// Update specific value if key is provided
     if (key != null && newValue != null) {
       switch (key.toLowerCase()) {
         case 'shade':
