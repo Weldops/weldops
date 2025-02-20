@@ -146,10 +146,11 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
     List<String> mode = ['welding', 'cutting'];
 
     int modeIndex = mode.indexOf(type.toLowerCase());
-    if (modeIndex <= 0) {
-      modeIndex = 1;
-    } else{
-      modeIndex = 2;
+    if (modeIndex == -1) {
+      print("Invalid mode type: $type");
+      modeIndex = 1; // Default to 1 if invalid
+    } else {
+      modeIndex += 1; // Convert 0 → 1 (welding) and 1 → 2 (cutting)
     }
 
     double currentShade = state.values['shadeValue'] ?? 8.0;
@@ -177,7 +178,6 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
       }
     }
 
-    // Convert to int values (shade needs *10 precision)
     List<int> intValueList = [
       weldShade, // Weld Shade
       cuttingShade, // Cutting Shade
@@ -194,9 +194,6 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
       8, 0, 0, // Additional settings (percentage, memory, setting)
       0xBA, 0xDC // Checksum
     ];
-
-    print('Sending command: $command');
-    print('Sending command: ${command.map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}').join(', ')}');
 
     return command;
   }

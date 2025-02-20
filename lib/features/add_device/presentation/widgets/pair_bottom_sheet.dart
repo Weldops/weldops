@@ -232,7 +232,7 @@ class _PairBottomSheetState extends ConsumerState<PairBottomSheet> {
   }
 }
 
-void connectToHelmet(BluetoothDevice device,  ref) async {
+Future<void> connectToHelmet(BluetoothDevice device,  ref) async {
   final refNotifier = ref.read(addDeviceStateNotifierProvider.notifier);
   refNotifier.connectionSuccess();
 
@@ -246,17 +246,13 @@ void connectToHelmet(BluetoothDevice device,  ref) async {
     final result = await ref.read(bluetoothNotifierProvider.notifier).connect(device);
 
     if (result == 'true') {
-      await Future.delayed(Duration(seconds: 2));
-
       List<BluetoothService> services = await device.discoverServices();
-      BluetoothService? targetService;
       BluetoothCharacteristic? readChar;
       BluetoothCharacteristic? writeChar;
 
       for (BluetoothService s in services) {
         final serviceUuid = s.uuid.toString().toLowerCase();
         if (serviceUuid.endsWith("ae30")) {
-          targetService = s;
           for (BluetoothCharacteristic x in s.characteristics) {
             final uuid = x.uuid.toString().toLowerCase();
             if (uuid.endsWith("ae02")) readChar = x;
@@ -265,10 +261,10 @@ void connectToHelmet(BluetoothDevice device,  ref) async {
         }
       }
 
-      if (targetService != null && readChar != null && writeChar != null) {
-        ref.read(bluetoothNotifierProvider.notifier).setDevice(device, readChar, writeChar);
+      if (readChar != null && writeChar != null) {
+        await ref.read(bluetoothNotifierProvider.notifier).setDevice(device, readChar, writeChar);
 
-        ref.read(homeStateNotifierProvider.notifier).addDevice(Device(
+       await ref.read(homeStateNotifierProvider.notifier).addDevice(Device(
           deviceId: device.remoteId.str,
           deviceModel: device.platformName,
           deviceName: device.platformName,
@@ -279,10 +275,10 @@ void connectToHelmet(BluetoothDevice device,  ref) async {
           data: 'data',
         ));
 
-        refNotifier.connectionSuccess();
+        await refNotifier.connectionSuccess();
       } else {
         print("Failed to find ae30 service or required characteristics");
-        refNotifier.connectionFailure();
+        await refNotifier.connectionFailure();
       }
     } else {
       print("Connection failed");
@@ -290,6 +286,5 @@ void connectToHelmet(BluetoothDevice device,  ref) async {
     }
   } catch (e) {
     print('Error in connectToHelmet: $e');
-    refNotifier.connectionFailure();
   }
 }

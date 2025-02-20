@@ -22,6 +22,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../../../add_device/presentation/widgets/pair_bottom_sheet.dart';
 import '../widgets/data_conversion.dart';
 
 class AdfSettingsScreen extends ConsumerStatefulWidget {
@@ -39,12 +40,13 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
   bool first = true;
   String action = 'save';
   Timer? _timer;
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
     init();
-    ref.read(adfSettingStateNotifierProvider.notifier).setWorkingType('Welding');
-
+    ref.read(adfSettingStateNotifierProvider.notifier).setWorkingType('welding');
     startFetchingValues();
   }
 
@@ -54,85 +56,97 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
     super.dispose();
   }
 
-  init() async {
-    Future.microtask(() async {
-      final result = await ref
-          .read(adfSettingStateNotifierProvider.notifier)
-          .loadAdfSettings((widget.device['deviceId']).toString());
-      if (result) {
-        fetchHelmetData(false);
-      } else {
-        fetchHelmetData(true);
-      }
-    });
-    Future.microtask(() async {
-      await ref
-          .read(memoryStateNotifierProvider.notifier)
-          .getMemorySettings((widget.device['deviceId']).toString());
-    });
-  }
+  Future<void> autoConnectToDevice() async {
+    final String deviceId = widget.device['deviceId'];
 
-  Future<void> fetchHelmetData(type) async {
-    final deviceState = ref.watch(bluetoothNotifierProvider);
-    if (deviceState.device == null) {
-      print("❌ Device is not connected");
-      setState(() {
-        helmet = convertBluetoothDataToJson([], widget.device); // Load default values
-        adfSettings = helmet['adfSettings'];
-      });
+    if (!await FlutterBluePlus.isAvailable || !await FlutterBluePlus.isOn) {
       return;
     }
 
-    print("🔗 Device is connected. Setting up notifications...");
-    try {
-      final state = ref.watch(bluetoothNotifierProvider);
-      if (state.readCharacteristic != null) {
-        print("✅ Enabling notifications for ${state.readCharacteristic?.serviceUuid}");
-        await state.readCharacteristic!.setNotifyValue(true);
+    FlutterBluePlus.startScan(timeout: const Duration(seconds: 10));
 
-        state.readCharacteristic!.onValueReceived.listen((value) {
-          print("📩 Received Data from Helmet: $value");
-
-          if (value.isEmpty) {
-            print("⚠️ Empty Bluetooth data received, applying default values.");
-            setState(() {
-              helmet = convertBluetoothDataToJson([], widget.device); // Apply default values
-              adfSettings = helmet['adfSettings'];
-            });
-            return;
-          }
-
-          if (mounted) {
-            setState(() {
-              Map<String, dynamic> helmetJson = convertBluetoothDataToJson(value, widget.device);
-              helmet = helmetJson;
-              adfSettings = helmetJson['adfSettings'];
-            });
-          }
-        });
-      } else {
-        print("❌ Read characteristic not found");
+    FlutterBluePlus.scanResults.listen((results) async {
+      for (ScanResult result in results) {
+        if (result.device.remoteId.str == deviceId) {
+          FlutterBluePlus.stopScan();
+          try {
+            await connectToHelmet(result.device, ref);
+          } catch (_) {}
+          setState(() => _isLoading = false);
+          break;
+        }
       }
-    } catch (e) {
-      print("❌ Error setting up characteristic notifications: $e");
-    }
-  }
-
-
-
-
-  void startFetchingValues() {
-    _timer = Timer.periodic(const Duration(seconds: 4), (timer) async {
-      init();
     });
   }
 
-  String getStatue(BluetoothDevice? device) {
+  Future<void> init() async {
+    final notifier = ref.read(adfSettingStateNotifierProvider.notifier);
+
+    final result = await notifier.loadAdfSettings(widget.device['deviceId'].toString());
+    fetchHelmetData(!result);
+
+    await ref.read(memoryStateNotifierProvider.notifier).getMemorySettings(widget.device['deviceId'].toString());
+  }
+
+  Future<void> fetchHelmetData(bool setDefaults) async {
+    final deviceState = ref.read(bluetoothNotifierProvider);
+    final adfSettingsState = ref.watch(adfSettingStateNotifierProvider);
+
+    if (!mounted || deviceState.device == null) return;
+
+    try {
+      final writeChar = deviceState.writeCharacteristic;
+      final readChar = deviceState.readCharacteristic;
+
+      if (writeChar != null && readChar != null) {
+        final List<int> command = await ref.read(adfSettingStateNotifierProvider.notifier).getValue(null, null, adfSettingsState.workingType!);
+        await writeChar.write(command, withoutResponse: true);
+        await readChar.setNotifyValue(true);
+
+        readChar.onValueReceived.listen((value) {
+          if (value.isNotEmpty && mounted) {
+            setState(() {
+              helmet = convertBluetoothDataToJson(value, widget.device);
+              adfSettings = helmet['adfSettings'] ?? [];
+            });
+          }
+        });
+      } else if (setDefaults && mounted) {
+        setDefaultValues();
+      }
+    } catch (_) {
+      if (setDefaults && mounted) setDefaultValues();
+    }
+  }
+
+  void setDefaultValues() {
+    setState(() {
+      helmet = convertBluetoothDataToJson([], widget.device);
+      adfSettings = helmet['adfSettings'] ?? [];
+    });
+  }
+
+  void startFetchingValues() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 4), (timer) async {
+         await init();
+    });
+  }
+
+  String getStatue(BluetoothDevice? device)  {
     String status = 'Disconnected';
+
+    if (device?.remoteId.str == null ) {
+      autoConnectToDevice().then((success) {
+      });
+    }
     if (device?.remoteId.str == widget.device['deviceId']) {
       status = device!.isConnected
           ? AppLocalizations.of(context)!.connected
           : 'Disconnected';
+      setState(() {
+        _isLoading = false;
+      });
     } else {
       status = 'Disconnected';
     }
@@ -149,8 +163,7 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
     final adfSettingsState = ref.watch(adfSettingStateNotifierProvider);
     List<AdfSettingsState> memories =
     ref.watch(memoryStateNotifierProvider).reversed.toList();
-    print("adfSettings: $adfSettings");
-    print("workingType: ${adfSettingsState.workingType}");
+
     removeDevice() async {
       showModalBottomSheet(
           context: context,
@@ -160,7 +173,7 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
           builder: (context) {
             return RemoveDeviceBottomSheet(device: widget.device);
           }).then(
-        (value) {
+            (value) {
           if (value == 'removed') {
             Navigator.pop(context);
           }
@@ -193,7 +206,7 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
               name: adfSettingsState.deviceName ?? '',
             );
           }).then(
-        (value) {
+            (value) {
           if (value == null) {
             ref
                 .read(adfSettingStateNotifierProvider.notifier)
@@ -235,7 +248,27 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
         init();
       }
     }
-
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: AppColors.primaryBackgroundColor,
+        appBar: AppBar(
+          backgroundColor: AppColors.primaryBackgroundColor,
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            color: AppColors.secondaryColor,
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(
+            widget.device['deviceName'],
+            style: AppTextStyles.appHeaderText,
+          ),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColors.primaryColor,),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: AppColors.primaryBackgroundColor,
       appBar: AppBar(
@@ -287,7 +320,7 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
                 iconColor: WidgetStatePropertyAll(AppColors.labelColor)),
             itemBuilder: (context) => [
               ...popupMenuItems.map(
-                (e) => PopupMenuItem(
+                    (e) => PopupMenuItem(
                     onTap: e['onTap'],
                     child: Row(
                       children: [
@@ -307,14 +340,13 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
               horizontal: screenWidth * 0.06, vertical: screenHeight * 0.04),
-          child: adfSettingsState.workingType != null
+          child: (helmet['adfSettings'] != null)
               ? Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               WeldingCuttingSelection(
                 modeList: adfSettings,
               ),
-              if (helmet['adfSettings'] != null)
                 ...adfSettings.map((x) {
                   if (adfSettingsState.workingType!.toLowerCase() ==
                       x['modeType'].toLowerCase()) {
@@ -355,7 +387,9 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
               )
             ],
           )
-              : const SizedBox(),
+        : const Center(
+            child: CircularProgressIndicator(color: AppColors.primaryColor,),
+          ),
         ),
       ),
       bottomNavigationBar: Padding(
