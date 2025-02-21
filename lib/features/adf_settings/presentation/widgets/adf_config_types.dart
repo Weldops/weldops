@@ -43,7 +43,9 @@ class AdfConfigTypes extends ConsumerWidget {
               }
               bool isSelected = (adfSettingsState.configType == null && key == 'shade') || (isCuttingMode
                   ? (key == 'shade'):
-                  (adfSettingsState.configType?.toLowerCase() == key));
+              (adfSettingsState.configType?.toLowerCase() == key));
+              final String modeKey = isCuttingMode ? 'cutting' : 'welding';
+              final String fullKey = '${modeKey}_${key.toLowerCase()}Value';
 
               return FractionallySizedBox(
                 widthFactor: widthFactor,
@@ -56,8 +58,7 @@ class AdfConfigTypes extends ConsumerWidget {
                   child: AdfConfigCard(
                     name: Functions().toCamelCase(key),
                     iconPath: value['image'],
-                    value: adfSettingsState
-                            .values['${key.toString().toLowerCase()}Value'] ??
+                    value: adfSettingsState.values[fullKey]  ??
                         values[key.toString().toLowerCase()]['default'],
                     isSelected: isSelected,
                   ),

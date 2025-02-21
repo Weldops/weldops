@@ -187,14 +187,15 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
 
     // Construct the full Bluetooth command
     List<int> command = [
-      0xEA, 0x01, 0x03, 0x02, // Header
+      0xEA, 0x01, 0x03, // Header
+      cuttingShade == 0 ? 0x01 : 0x02,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Padding
       modeIndex, // Mode type (welding or cutting)
       ...intValueList, // Weld Shade, Cutting Shade, Sensitivity, Delay
       8, 0, 0, // Additional settings (percentage, memory, setting)
       0xBA, 0xDC // Checksum
     ];
-
+    print("command sending ...${command}");
     return command;
   }
 
@@ -205,7 +206,10 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
       double newValue = value + increment;
 
       if (newValue <= max) {
-        newGaugeValue['${key}Value'] = newValue;
+        final String modeKey = state.workingType?.toLowerCase() == 'cutting' ? 'cutting' : 'welding';
+        final String fullKey = '${modeKey}_${key.toLowerCase()}Value';
+
+        newGaugeValue[fullKey] = newValue;
         state = state.copyWith(values: newGaugeValue);
         List<int> command = await getValue(newValue, key, state.workingType ?? 'welding');
         _bluetoothDeviceNotifier.write(command);
@@ -222,7 +226,10 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
       double newValue = value - decrement;
 
       if (newValue >= min) {
-        newGaugeValue['${key}Value'] = newValue;
+        final String modeKey = state.workingType?.toLowerCase() == 'cutting' ? 'cutting' : 'welding';
+        final String fullKey = '${modeKey}_${key.toLowerCase()}Value';
+
+        newGaugeValue[fullKey] = newValue;
         state = state.copyWith(values: newGaugeValue);
         List<int> command = await getValue(newValue, key, state.workingType ?? 'welding');
         _bluetoothDeviceNotifier.write(command);
@@ -231,5 +238,6 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
       print('Error in decreaseGaugeValue: $e');
     }
   }
+
 
 }
