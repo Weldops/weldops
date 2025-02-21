@@ -60,17 +60,17 @@ Map<String, dynamic> convertBluetoothDataToJson(List<int> data, Map<String, dyna
         {
           "modeType": "Welding",
           "image": "assets/images/welding_img.png",
-          "shade": {
-            "image": "assets/images/shade_img.png",
-            "min": 5.0,
-            "max": 13.0,
-            "default": weldingShade / 10
-          },
           "sensitivity": {
             "image": "assets/images/sensitivity_img.png",
             "min": 0.0,
             "max": 5.0,
             "default": data[13].toDouble()
+          },
+          "shade": {
+            "image": "assets/images/shade_img.png",
+            "min": 5.0,
+            "max": 13.0,
+            "default": weldingShade / 10
           },
           "delay": {
             "image": "assets/images/delay_img.png",
