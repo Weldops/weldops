@@ -349,7 +349,7 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
                 modeList: adfSettings,
               ),
                 ...adfSettings.map((x) {
-                  if (adfSettingsState.workingType!.toLowerCase() ==
+                  if (adfSettingsState.workingType?.toLowerCase() ==
                       x['modeType'].toLowerCase()) {
                     bool isCuttingMode = x['modeType'].toLowerCase() == 'cutting';
                     return Column(

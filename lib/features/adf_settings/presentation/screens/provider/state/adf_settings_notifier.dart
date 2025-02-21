@@ -108,7 +108,7 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
   }
 
   void setWorkingType(String workingType) async {
-    List<int> command = await getValue(null, null, state.workingType ?? 'welding');
+    List<int> command = await getValue(null, null, workingType);
     _bluetoothDeviceNotifier.write(command);
     state = AdfSettingsState(
         configType: state.configType,

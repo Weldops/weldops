@@ -47,7 +47,7 @@ class _WeldingCuttingSelectionState
                     },
                     child: Container(
                       height: double.infinity,
-                      color: (adfSettingsState.workingType!).toLowerCase() ==
+                      color: (adfSettingsState.workingType)?.toLowerCase() ==
                               x['modeType'].toLowerCase()
                           ? AppColors.primaryColor
                           : Colors.transparent,
