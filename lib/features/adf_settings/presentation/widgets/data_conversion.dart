@@ -1,3 +1,5 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
 Map<String, dynamic> convertBluetoothDataToJson(List<int> data, Map<String, dynamic> device) {
   if (data.isEmpty) {
     print("⚠️ Invalid Bluetooth data, returning defaults.");
@@ -44,9 +46,13 @@ Map<String, dynamic> convertBluetoothDataToJson(List<int> data, Map<String, dyna
 
   try {
     bool isWeldingFirst = data[10] == 1;
-    double weldingShade = data[11].toDouble() / 10;
-    double cuttingShade = data[12].toDouble() / 10;
-
+    double weldingShade = data[11].toDouble() ;
+    double cuttingShade = data[12].toDouble()  ;
+    print("object211221${weldingShade}");
+    print("object211221${cuttingShade}");
+    if(weldingShade != 0.0 && cuttingShade != 0.0) {
+      saveShadePreferences(weldingShade,cuttingShade);
+    }
     return {
       "modelId": device['deviceId'],
       "modelName": device['deviceName'],
@@ -59,7 +65,7 @@ Map<String, dynamic> convertBluetoothDataToJson(List<int> data, Map<String, dyna
             "image": "assets/images/shade_img.png",
             "min": 5.0,
             "max": 13.0,
-            "default": weldingShade
+            "default": weldingShade / 10
           },
           "sensitivity": {
             "image": "assets/images/sensitivity_img.png",
@@ -81,7 +87,7 @@ Map<String, dynamic> convertBluetoothDataToJson(List<int> data, Map<String, dyna
             "image": "assets/images/shade_img.png",
             "min": 5.0,
             "max": 13.0,
-            "default": cuttingShade
+            "default": cuttingShade / 10
           }
         }
       ]
@@ -90,4 +96,18 @@ Map<String, dynamic> convertBluetoothDataToJson(List<int> data, Map<String, dyna
     print("❌ Error parsing Bluetooth data: $e");
     return convertBluetoothDataToJson([], device); // Return default values
   }
+}
+
+Future<void> saveShadePreferences(welding,cutting) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  int weldShade = (welding ?? 10.0).toInt();
+  int cuttingShade = (cutting ?? 10.0).toInt();
+
+  // Save to SharedPreferences
+  await prefs.setInt("weldShade", weldShade);
+  await prefs.setInt("cuttingShade", cuttingShade);
+
+  print("WeldShade : saved ${prefs.getInt("weldShade")}");
+  print("cuttingShade : saved ${prefs.getInt("cuttingShade")}");
 }
