@@ -59,6 +59,23 @@ class _PairBottomSheetState extends ConsumerState<PairBottomSheet> {
       Navigator.of(context).pop();
     }
 
+    adfScreen() {
+      Navigator.pop(context);
+      Navigator.pushNamed(context, '/adfSettings',
+          arguments: {
+            'device': {
+              'deviceId': widget.device.remoteId.str,
+              'deviceModel': widget.device.platformName,
+              'deviceName': widget.device.platformName,
+              'displayName': widget.device.platformName,
+              'macAddress': widget.device.remoteId.str,
+              'imageUrl': 'assets/images/helmet_image.png',
+              'createdAt': DateTime.now().toIso8601String(),
+              'data': 'data',
+            }
+          });
+    }
+
     return Padding(
       padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -168,7 +185,9 @@ class _PairBottomSheetState extends ConsumerState<PairBottomSheet> {
                   ),
                   CustomButton(
                     buttonText: AppLocalizations.of(context)!.ok,
-                    onTapCallback: closeSheet,
+                    onTapCallback: () async {
+                      adfScreen();
+                    },
                   ),
                 ],
               )
