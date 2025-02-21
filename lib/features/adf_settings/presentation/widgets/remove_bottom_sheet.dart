@@ -1,3 +1,4 @@
+import 'package:esab/bluetooth/presentation/provider/bluetooth_device_state_notifier.dart';
 import 'package:esab/features/home/presentation/providers/home_state_notifier_provider.dart';
 import 'package:esab/shared/widgets/buttons/custom_button.dart';
 import 'package:esab/shared/widgets/buttons/custom_outlined_button.dart';
@@ -31,6 +32,8 @@ class _RemoveDeviceBottomSheetState
 
     void delete() async {
       try {
+        final disconnectResult = await ref.read(bluetoothNotifierProvider.notifier).disConnect();
+        print("Bluetooth Disconnect Result: $disconnectResult");
         await ref
             .read(homeStateNotifierProvider.notifier)
             .removeDevice((widget.device['deviceId']).toString());
@@ -38,7 +41,7 @@ class _RemoveDeviceBottomSheetState
           isRemoved = true;
         });
       } catch (e) {
-        print(e);
+        print("Error while removing device: $e");
       }
     }
 

@@ -61,7 +61,7 @@ class _PairBottomSheetState extends ConsumerState<PairBottomSheet> {
 
     adfScreen() {
       Navigator.pop(context);
-      Navigator.pushNamed(context, '/adfSettings',
+      Navigator.pushReplacementNamed(context, '/adfSettings',
           arguments: {
             'device': {
               'deviceId': widget.device.remoteId.str,
