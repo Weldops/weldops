@@ -185,9 +185,7 @@ class _PairBottomSheetState extends ConsumerState<PairBottomSheet> {
                   ),
                   CustomButton(
                     buttonText: AppLocalizations.of(context)!.ok,
-                    onTapCallback: () async {
-                      adfScreen();
-                    },
+                    onTapCallback: adfScreen,
                   ),
                 ],
               )
