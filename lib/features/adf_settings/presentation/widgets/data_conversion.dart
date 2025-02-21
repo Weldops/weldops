@@ -48,9 +48,8 @@ Map<String, dynamic> convertBluetoothDataToJson(List<int> data, Map<String, dyna
     bool isWeldingFirst = data[10] == 1;
     double weldingShade = data[11].toDouble() ;
     double cuttingShade = data[12].toDouble()  ;
-    print("object211221${weldingShade}");
-    print("object211221${cuttingShade}");
-    if(weldingShade != 0.0 && cuttingShade != 0.0) {
+
+    if(weldingShade != 0 && cuttingShade != 0) {
       saveShadePreferences(weldingShade,cuttingShade);
     }
     return {
