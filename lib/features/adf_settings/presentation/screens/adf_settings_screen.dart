@@ -108,6 +108,7 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
             setState(() {
               helmet = convertBluetoothDataToJson(value, widget.device);
               adfSettings = helmet['adfSettings'] ?? [];
+              print("Recieved from helmet...${value.toString()}");
             });
           }
         });
