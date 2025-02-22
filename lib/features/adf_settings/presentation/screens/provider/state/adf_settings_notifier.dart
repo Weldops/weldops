@@ -135,67 +135,51 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
   }
 
 
-  Future<List<int>> getValue(
-    double? newValue,
-    String? key,
-    String type,
-  ) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int weldShade = prefs.getInt("weldShade") ?? 0;
-    int cuttingShade = prefs.getInt("cuttingShade") ?? 0;
-    List<String> mode = ['welding', 'cutting'];
+  Future<List<int>> getValue(double? newValue, String? key, String type) async {
+    final prefs = await SharedPreferences.getInstance();
 
-    int modeIndex = mode.indexOf(type.toLowerCase());
-    if (modeIndex == -1) {
-      print("Invalid mode type: $type");
-      modeIndex = 1; // Default to 1 if invalid
-    } else {
-      modeIndex += 1; // Convert 0 → 1 (welding) and 1 → 2 (cutting)
-    }
+    int weldShade = prefs.getInt("weldShade") ?? 10;
+    int cuttingShade = prefs.getInt("cuttingShade") ?? 10;
+    int weldSensitivity = prefs.getInt("weldingSensitivity") ?? 3;
+    int weldDelay = prefs.getInt("weldingDelay") ?? 3;
+    int modeIndex = (type.toLowerCase() == 'welding') ? 1 : 2;
 
-    double currentShade = state.values['shadeValue'] ?? 8.0;
-    double currentSensitivity = state.values['sensitivityValue'] ?? 3.0;
-    double currentDelay = state.values['delayValue'] ?? 3.0;
-    /// Update specific value if key is provided
     if (key != null && newValue != null) {
+      final updatedValue = key.toLowerCase() == 'shade' ? (newValue * 10).round() : newValue.toInt();
+
       switch (key.toLowerCase()) {
         case 'shade':
-          currentShade = newValue;
           if (modeIndex == 1) {
-            weldShade = (newValue * 10).round();
+            weldShade = updatedValue;
             await prefs.setInt("weldShade", weldShade);
           } else {
-            cuttingShade = (newValue * 10).round();
+            cuttingShade = updatedValue;
             await prefs.setInt("cuttingShade", cuttingShade);
           }
           break;
         case 'sensitivity':
-          currentSensitivity = newValue;
+          weldSensitivity = updatedValue;
+          await prefs.setInt("weldingSensitivity", weldSensitivity);
           break;
         case 'delay':
-          currentDelay = newValue;
+          weldDelay = updatedValue;
+          await prefs.setInt("weldingDelay", weldDelay);
           break;
       }
     }
 
-    List<int> intValueList = [
-      weldShade, // Weld Shade
-      cuttingShade, // Cutting Shade
-      currentSensitivity.round(), // Sensitivity
-      currentDelay.round(), // Delay
-    ];
+    final List<int> intValueList = [weldShade, cuttingShade, weldSensitivity, weldDelay];
 
-    // Construct the full Bluetooth command
-    List<int> command = [
+    final List<int> command = [
       0xEA, 0x01, 0x03, // Header
-      cuttingShade == 0 ? 0x01 : 0x02,
+      (cuttingShade == 0) ? 0x01 : 0x02, // Header Read : Write
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Padding
       modeIndex, // Mode type (welding or cutting)
       ...intValueList, // Weld Shade, Cutting Shade, Sensitivity, Delay
       8, 0, 0, // Additional settings (percentage, memory, setting)
       0xBA, 0xDC // Checksum
     ];
-    print("command sending ...${command}");
+    print("Command sending... $command");
     return command;
   }
 

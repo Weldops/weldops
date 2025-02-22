@@ -59,7 +59,7 @@ class _WeldingCuttingSelectionState
                             width: 24,
                             height: 24,
                             color:
-                                (adfSettingsState.workingType!).toLowerCase() ==
+                                (adfSettingsState.workingType)?.toLowerCase() ==
                                         x['modeType'].toLowerCase()
                                     ? AppColors.secondaryTextColor
                                     : AppColors.secondaryColor,
@@ -68,7 +68,7 @@ class _WeldingCuttingSelectionState
                           Text(
                             x['modeType'],
                             style:
-                                (adfSettingsState.workingType!).toLowerCase() ==
+                                (adfSettingsState.workingType)?.toLowerCase() ==
                                         x['modeType'].toLowerCase()
                                     ? AppTextStyles.buttonTextStyle
                                     : AppTextStyles.secondaryMediumText,

@@ -3,54 +3,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 Map<String, dynamic> convertBluetoothDataToJson(List<int> data, Map<String, dynamic> device) {
   if (data.isEmpty) {
     print("⚠️ Invalid Bluetooth data, returning defaults.");
-    return {
-      "modelId": device['deviceId'] ?? "default",
-      "modelName": device['deviceName'] ?? "default",
-      "imageUrl": "assets/images/helmet_image.png",
-      "adfSettings": [
-        {
-          "modeType": "Welding",
-          "image": "assets/images/welding_img.png",
-          "shade": {
-            "image": "assets/images/shade_img.png",
-            "min": 5.0,
-            "max": 13.0,
-            "default": 10.0
-          },
-          "sensitivity": {
-            "image": "assets/images/sensitivity_img.png",
-            "min": 0.0,
-            "max": 5.0,
-            "default": 5.0
-          },
-          "delay": {
-            "image": "assets/images/delay_img.png",
-            "min": 0.0,
-            "max": 5.0,
-            "default": 5.0
-          }
-        },
-        {
-          "modeType": "Cutting",
-          "image": "assets/images/cutting_img.png",
-          "shade": {
-            "image": "assets/images/shade_img.png",
-            "min": 5.0,
-            "max": 13.0,
-            "default": 10.0
-          }
-        }
-      ]
-    };
+    return getDefaultAdfSettings(device);
   }
 
   try {
     bool isWeldingFirst = data[10] == 1;
     double weldingShade = data[11].toDouble() ;
     double cuttingShade = data[12].toDouble()  ;
+    double weldingSensitivity = data[13].toDouble()  ;
+    double weldingDelay = data[14].toDouble()  ;
 
-    if(weldingShade != 0 && cuttingShade != 0) {
-      saveShadePreferences(weldingShade,cuttingShade);
+    if (weldingShade > 0 && cuttingShade > 0) {
+      saveShadePreferences(weldingShade, cuttingShade, weldingSensitivity, weldingDelay);
     }
     return {
       "modelId": device['deviceId'],
@@ -64,7 +28,7 @@ Map<String, dynamic> convertBluetoothDataToJson(List<int> data, Map<String, dyna
             "image": "assets/images/sensitivity_img.png",
             "min": 0.0,
             "max": 5.0,
-            "default": data[13].toDouble()
+            "default": weldingSensitivity
           },
           "shade": {
             "image": "assets/images/shade_img.png",
@@ -76,7 +40,7 @@ Map<String, dynamic> convertBluetoothDataToJson(List<int> data, Map<String, dyna
             "image": "assets/images/delay_img.png",
             "min": 0.0,
             "max": 5.0,
-            "default": data[14].toDouble()
+            "default": weldingDelay
           }
         },
         {
@@ -97,16 +61,55 @@ Map<String, dynamic> convertBluetoothDataToJson(List<int> data, Map<String, dyna
   }
 }
 
-Future<void> saveShadePreferences(welding,cutting) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
+Future<void> saveShadePreferences(double welding, double cutting, double sensitivity, double delay) async {
+  final prefs = await SharedPreferences.getInstance();
 
-  int weldShade = (welding ?? 10.0).toInt();
-  int cuttingShade = (cutting ?? 10.0).toInt();
+  await prefs.setInt("weldShade", welding.toInt());
+  await prefs.setInt("cuttingShade", cutting.toInt());
+  await prefs.setInt("weldingSensitivity", sensitivity.toInt());
+  await prefs.setInt("weldingDelay", delay.toInt());
 
-  // Save to SharedPreferences
-  await prefs.setInt("weldShade", weldShade);
-  await prefs.setInt("cuttingShade", cuttingShade);
+  print("✅ Shade preferences saved successfully.");
+}
 
-  print("WeldShade : saved ${prefs.getInt("weldShade")}");
-  print("cuttingShade : saved ${prefs.getInt("cuttingShade")}");
+Map<String, dynamic> getDefaultAdfSettings(Map<String, dynamic> device) {
+  return {
+    "modelId": device['deviceId'] ?? "default",
+    "modelName": device['deviceName'] ?? "default",
+    "imageUrl": "assets/images/helmet_image.png",
+    "adfSettings": [
+      {
+        "modeType": "Welding",
+        "image": "assets/images/welding_img.png",
+        "shade": {
+          "image": "assets/images/shade_img.png",
+          "min": 5.0,
+          "max": 13.0,
+          "default": 10.0
+        },
+        "sensitivity": {
+          "image": "assets/images/sensitivity_img.png",
+          "min": 0.0,
+          "max": 5.0,
+          "default": 5.0
+        },
+        "delay": {
+          "image": "assets/images/delay_img.png",
+          "min": 0.0,
+          "max": 5.0,
+          "default": 5.0
+        }
+      },
+      {
+        "modeType": "Cutting",
+        "image": "assets/images/cutting_img.png",
+        "shade": {
+          "image": "assets/images/shade_img.png",
+          "min": 5.0,
+          "max": 13.0,
+          "default": 10.0
+        }
+      }
+    ]
+  };
 }
