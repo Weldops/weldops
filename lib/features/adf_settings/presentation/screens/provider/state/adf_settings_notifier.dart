@@ -135,7 +135,8 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
   }
 
 
-  Future<List<int>> getValue(double? newValue, String? key, String type) async {
+  Future<List<int>> getValue(double? newValue, String? key, String type,
+      {int? readValue}) async {
     final prefs = await SharedPreferences.getInstance();
 
     int weldShade = prefs.getInt("weldShade") ?? 10;
@@ -172,7 +173,7 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
 
     final List<int> command = [
       0xEA, 0x01, 0x03, // Header
-      (cuttingShade == 0) ? 0x01 : 0x02, // Header Read : Write
+      (cuttingShade == 0 || readValue == 1) ? 0x01 : 0x02, // Header Read : Write
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Padding
       modeIndex, // Mode type (welding or cutting)
       ...intValueList, // Weld Shade, Cutting Shade, Sensitivity, Delay
