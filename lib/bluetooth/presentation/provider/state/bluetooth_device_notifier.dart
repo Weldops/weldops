@@ -72,8 +72,9 @@ class BluetoothDeviceNotifier extends StateNotifier<BtDeviceState> {
   }
 
   Future<String> disConnect() async {
-    if (!mounted) return 'false'; // Prevent action if widget is disposed
+    if (!mounted) return 'false';
     final result = await _disConnect.execute(state.device!);
+    state.device?.disconnect();
     if (mounted) {
       reset();
     }

@@ -224,5 +224,26 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
     }
   }
 
+  Future<List<int>> getDeviceTime() async {
+    final List<int> command = [
+      0xEA, 0x01, 0x03, // Header
+      0x07, // Header Read : Write
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Padding
+      0xBA, 0xDC // Checksum
+    ];
+    print("Command sending to get time ... $command");
+    return command;
+  }
+
+  Future<List<int>> setDeviceTime() async {
+    final List<int> command = [
+      0xEA, 0x01, 0x03, // Header
+      0x06, // Header Read : Write
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Padding
+      0xBA, 0xDC // Checksum
+    ];
+    print("Command sending to get time ... $command");
+    return command;
+  }
 
 }

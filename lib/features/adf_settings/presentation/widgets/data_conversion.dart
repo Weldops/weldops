@@ -81,17 +81,17 @@ Map<String, dynamic> getDefaultAdfSettings(Map<String, dynamic> device) {
       {
         "modeType": "Welding",
         "image": "assets/images/welding_img.png",
-        "shade": {
-          "image": "assets/images/shade_img.png",
-          "min": 5.0,
-          "max": 13.0,
-          "default": 10.0
-        },
         "sensitivity": {
           "image": "assets/images/sensitivity_img.png",
           "min": 0.0,
           "max": 5.0,
           "default": 5.0
+        },
+        "shade": {
+          "image": "assets/images/shade_img.png",
+          "min": 5.0,
+          "max": 13.0,
+          "default": 10.0
         },
         "delay": {
           "image": "assets/images/delay_img.png",

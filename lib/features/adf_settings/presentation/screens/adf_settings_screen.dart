@@ -41,6 +41,8 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
   String action = 'save';
   Timer? _timer;
   bool _isLoading = true;
+  Timer? _reconnectTimer;
+  bool? isFirst = true;
 
   @override
   void initState() {
@@ -53,7 +55,24 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _reconnectTimer?.cancel();
+
     super.dispose();
+  }
+
+  void startReconnectTimer() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer.periodic(const Duration(seconds: 4), (timer) async {
+      final bluetoothDevice = ref.read(bluetoothNotifierProvider);
+      if (bluetoothDevice.device?.remoteId.str != widget.device['deviceId'] ||
+          !(bluetoothDevice.device?.isConnected ?? false)) {
+        print("Device disconnected. Attempting reconnection...");
+        await autoConnectToDevice();
+      } else {
+        print("Device connected. Stopping auto-reconnect.");
+        _reconnectTimer?.cancel();
+      }
+    });
   }
 
   Future<void> autoConnectToDevice() async {
@@ -71,8 +90,13 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
           FlutterBluePlus.stopScan();
           try {
             await connectToHelmet(result.device, ref);
+            if (result.device.isConnected) {
+              _reconnectTimer?.cancel();
+            }
           } catch (_) {}
-          setState(() => _isLoading = false);
+          if(mounted) {
+            setState(() => _isLoading = false);
+          }
           break;
         }
       }
@@ -101,10 +125,18 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
       if (writeChar != null && readChar != null) {
         final List<int> command = await ref.read(adfSettingStateNotifierProvider.notifier).getValue(null, null, adfSettingsState.workingType!,readValue: 1);
         await writeChar.write(command, withoutResponse: true);
+        if (isFirst == true) {
+          final List<int> commandToGetTime =
+          await ref.read(adfSettingStateNotifierProvider.notifier).getDeviceTime();
+          await writeChar.write(commandToGetTime, withoutResponse: true);
+          setState(() {
+            isFirst = false; // Set flag to false after running once
+          });
+        }
         await readChar.setNotifyValue(true);
-
         readChar.onValueReceived.listen((value) {
-          if (value.isNotEmpty && mounted) {
+          print("1313123123221312${value}");
+          if (value.isNotEmpty && mounted && value.length > 18) {
             setState(() {
               helmet = convertBluetoothDataToJson(value, widget.device);
               adfSettings = helmet['adfSettings'] ?? [];
@@ -137,18 +169,21 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
     String status = 'Disconnected';
 
     if (device?.remoteId.str == null ) {
-      autoConnectToDevice().then((success) {
-      });
+      startReconnectTimer();
     }
     if (device?.remoteId.str == widget.device['deviceId']) {
       status = device!.isConnected
           ? AppLocalizations.of(context)!.connected
           : 'Disconnected';
+      if (!device.isConnected) {
+        startReconnectTimer();
+      }
       setState(() {
         _isLoading = false;
       });
     } else {
       status = 'Disconnected';
+      startReconnectTimer();
     }
     return status;
   }
