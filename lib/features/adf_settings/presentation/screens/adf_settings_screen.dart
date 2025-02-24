@@ -130,7 +130,7 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
           await ref.read(adfSettingStateNotifierProvider.notifier).getDeviceTime();
           await writeChar.write(commandToGetTime, withoutResponse: true);
           setState(() {
-            isFirst = false; // Set flag to false after running once
+            isFirst = false;
           });
         }
         await readChar.setNotifyValue(true);
