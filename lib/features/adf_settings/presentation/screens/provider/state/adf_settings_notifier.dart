@@ -180,7 +180,6 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
       8, 0, 0, // Additional settings (percentage, memory, setting)
       0xBA, 0xDC // Checksum
     ];
-    print("Command sending... $command");
     return command;
   }
 

@@ -68,8 +68,6 @@ Future<void> saveShadePreferences(double welding, double cutting, double sensiti
   await prefs.setInt("cuttingShade", cutting.toInt());
   await prefs.setInt("weldingSensitivity", sensitivity.toInt());
   await prefs.setInt("weldingDelay", delay.toInt());
-
-  print("✅ Shade preferences saved successfully.");
 }
 
 Map<String, dynamic> getDefaultAdfSettings(Map<String, dynamic> device) {

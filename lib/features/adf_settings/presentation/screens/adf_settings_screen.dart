@@ -135,7 +135,6 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
         }
         await readChar.setNotifyValue(true);
         readChar.onValueReceived.listen((value) {
-          print("1313123123221312${value}");
           if (value.isNotEmpty && mounted && value.length > 18) {
             setState(() {
               helmet = convertBluetoothDataToJson(value, widget.device);

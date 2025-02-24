@@ -32,8 +32,7 @@ class _RemoveDeviceBottomSheetState
 
     void delete() async {
       try {
-        final disconnectResult = await ref.read(bluetoothNotifierProvider.notifier).disConnect();
-        print("Bluetooth Disconnect Result: $disconnectResult");
+        await ref.read(bluetoothNotifierProvider.notifier).disConnect();
         await ref
             .read(homeStateNotifierProvider.notifier)
             .removeDevice((widget.device['deviceId']).toString());

@@ -21,12 +21,10 @@ class BluetoothDeviceNotifier extends StateNotifier<BtDeviceState> {
 
   setDevice(BluetoothDevice device, BluetoothCharacteristic? readChar,
       BluetoothCharacteristic? writeChar) async {
-    print("Before setting device - Current state: ${state.device?.remoteId}");
     state = BtDeviceState(
         device: device,
         readCharacteristic: readChar,
         writeCharacteristic: writeChar);
-    print("After setting device - New state: ${state.device?.remoteId}");
   }
 
   Future<void> read() async {
