@@ -66,13 +66,13 @@ class OutlinedInputField extends StatelessWidget {
             keyboardType: inputType,
             onChanged: onChanged,
             validator: validator,
-            style: const TextStyle(color: AppColors.labelColor),
+            style: const TextStyle(color: AppColors.secondaryTextColor),
             decoration: InputDecoration(
               suffixIcon: suffix,
               prefixIcon: prefix,
               hintText: label,
               suffixText: suffixText,
-              hintStyle: const TextStyle(color: Colors.grey),
+              hintStyle: const TextStyle(color: AppColors.secondaryTextColor),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: Colors.grey, width: 1.5),
