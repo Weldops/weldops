@@ -235,10 +235,16 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
   }
 
   Future<List<int>> setDeviceTime() async {
+    DateTime now = DateTime.now();
     final List<int> command = [
       0xEA, 0x01, 0x03, // Header
       0x06, // Header Read : Write
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // Padding
+      now.year % 100, // Last two digits of the year
+      now.month,
+      now.day,
+      now.hour,
+      now.minute,
       0xBA, 0xDC // Checksum
     ];
     print("Command sending to get time ... $command");

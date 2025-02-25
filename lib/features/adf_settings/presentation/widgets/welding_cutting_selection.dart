@@ -3,6 +3,7 @@ import 'package:esab/themes/app_text_styles.dart';
 import 'package:esab/themes/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class WeldingCuttingSelection extends ConsumerStatefulWidget {
   const WeldingCuttingSelection({super.key, required this.modeList});
@@ -19,8 +20,10 @@ class _WeldingCuttingSelectionState
   Widget build(BuildContext context) {
     final adfSettingsState = ref.watch(adfSettingStateNotifierProvider);
 
-    handleSelectWelding(type) {
+    handleSelectWelding(type) async {
+      final prefs = await SharedPreferences.getInstance();
       ref.read(adfSettingStateNotifierProvider.notifier).setWorkingType(type);
+      await prefs.setString('workingType', type);
       setState(() {});
     }
 
