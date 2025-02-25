@@ -21,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../add_device/presentation/widgets/pair_bottom_sheet.dart';
 import '../widgets/data_conversion.dart';
@@ -48,7 +49,7 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
   void initState() {
     super.initState();
     init();
-    ref.read(adfSettingStateNotifierProvider.notifier).setWorkingType('welding');
+    loadWorkingType();
     startFetchingValues();
   }
 
@@ -56,8 +57,13 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
   void dispose() {
     _timer?.cancel();
     _reconnectTimer?.cancel();
-
     super.dispose();
+  }
+
+  Future<void> loadWorkingType() async {
+    final prefs = await SharedPreferences.getInstance();
+    final workingType = prefs.getString('workingType') ?? 'welding';
+    ref.read(adfSettingStateNotifierProvider.notifier).setWorkingType(workingType);
   }
 
   void startReconnectTimer() {
@@ -127,7 +133,7 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
         await writeChar.write(command, withoutResponse: true);
         if (isFirst == true) {
           final List<int> commandToGetTime =
-          await ref.read(adfSettingStateNotifierProvider.notifier).getDeviceTime();
+          await ref.read(adfSettingStateNotifierProvider.notifier).setDeviceTime();
           await writeChar.write(commandToGetTime, withoutResponse: true);
           setState(() {
             isFirst = false;
@@ -135,6 +141,7 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
         }
         await readChar.setNotifyValue(true);
         readChar.onValueReceived.listen((value) {
+          print(("received time${value}"));
           if (value.isNotEmpty && mounted && value.length > 18) {
             setState(() {
               helmet = convertBluetoothDataToJson(value, widget.device);
