@@ -28,8 +28,7 @@ class _AddDeviceScreenState extends ConsumerState<AddDeviceScreen> {
     _scanResultsSubscription = FlutterBluePlus.scanResults.listen((results) {
       List<ScanResult> filteredResults = [];
       for (ScanResult x in results) {
-        String deviceId = x.device.remoteId.str;
-        if (x.advertisementData.connectable && deviceId.startsWith("DD:DD")) {
+        if (x.advertisementData.connectable && x.device.platformName.startsWith("A70")) {
           filteredResults.add(x);
         }
       }
