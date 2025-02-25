@@ -68,18 +68,21 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
                       const SizedBox(
                         width: 10,
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user.userName,
-                            style: AppTextStyles.headerText,
-                          ),
-                          Text(
-                            user_info.user?.email ?? user.email, // Prefer user_info email if available
-                            style: AppTextStyles.secondarySmallText,
-                          ),
-                        ],
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width / 2.2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user.userName,softWrap: true,
+                              style: AppTextStyles.headerText,
+                            ),
+                            Text(
+                              user_info.user?.email ?? user.email, // Prefer user_info email if available
+                              style: AppTextStyles.secondarySmallText,
+                            ),
+                          ],
+                        ),
                       )
                     ],
                   ),
