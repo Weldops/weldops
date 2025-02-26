@@ -24,11 +24,12 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  late StreamSubscription<BluetoothConnectionState>
-      _connectionStateSubscription;
+  StreamSubscription<BluetoothConnectionState>? _connectionStateSubscription;
 
   @override
   void initState() {
+    super.initState();
+
     final deviceState = ref.read(bluetoothNotifierProvider);
     if (deviceState.device != null) {
       _connectionStateSubscription =
@@ -38,13 +39,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         }
       });
     }
-
-    super.initState();
   }
 
   @override
   void dispose() {
-    _connectionStateSubscription.cancel();
+    _connectionStateSubscription?.cancel();
     super.dispose();
   }
 
