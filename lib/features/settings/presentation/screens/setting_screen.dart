@@ -6,6 +6,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../utils/snackbar_util.dart';
+import '../../../home/presentation/providers/home_state_notifier_provider.dart';
 import '../widgets/user_utils.dart';
 
 class SettingScreen extends ConsumerStatefulWidget {
@@ -27,9 +30,26 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
 
 
   Future<void> logout() async {
-    print('object');
+    final logoutNotifier = ref.read(logoutStateNotifierProvider.notifier);
+    await logoutNotifier.logout();
+
     await FirebaseAuth.instance.signOut();
-    Navigator.pushNamedAndRemoveUntil(context, '/signIn', (route) => false);
+
+    if (!context.mounted) return;
+
+    final logoutState = ref.read(logoutStateNotifierProvider);
+
+    if (logoutState.isLoggedOut) {
+      ref.read(signInStateNotifierProvider.notifier).clearState();
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
+      SnackbarUtils.showSnackbar(context, AppLocalizations.of(context)!.loggedoutSuccess);
+      Navigator.pushNamedAndRemoveUntil(context, '/signIn', (route) => false);
+    } else {
+      SnackbarUtils.showSnackbar(context, AppLocalizations.of(context)!.somethingWentWrong);
+    }
   }
 
   Future<void> editProfilePage() async {
@@ -199,6 +219,7 @@ class _SettingScreenState extends ConsumerState<SettingScreen> {
                       SettingsRow(
                         icon: Icons.logout,
                         title: 'Logout',
+
                         onTap: () => logout(),
                       ),
                     ],
