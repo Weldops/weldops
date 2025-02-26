@@ -83,11 +83,6 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
 
   Future<void> autoConnectToDevice() async {
     final String deviceId = widget.device['deviceId'];
-
-    if (!await FlutterBluePlus.isAvailable || !await FlutterBluePlus.isOn) {
-      return;
-    }
-
     FlutterBluePlus.startScan(timeout: const Duration(seconds: 10));
 
     FlutterBluePlus.scanResults.listen((results) async {

@@ -61,11 +61,6 @@ class BluetoothDeviceNotifier extends StateNotifier<BtDeviceState> {
     if (!mounted) return 'false'; // Prevent action if disposed
 
     final result = await _connect.execute(device);
-
-    if (mounted && state.device != null && result == 'true') {
-      await disConnect();
-    }
-
     return result;
   }
 
