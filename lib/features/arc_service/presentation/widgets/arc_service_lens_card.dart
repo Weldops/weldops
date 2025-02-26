@@ -245,38 +245,17 @@ class LensCard extends ConsumerWidget {
                   child: Container(
                     height: 30,
                     decoration: const BoxDecoration(
-                      color: AppColors.successColor,
-                      border: Border(
-                          right: BorderSide(color: AppColors.secondaryColor)),
-                      borderRadius:
-                          BorderRadius.horizontal(left: Radius.circular(8)),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 4,
-                  child: Container(
-                    decoration: const BoxDecoration(
-                        color: AppColors.mediumColor,
-                        border: Border(
-                            right:
-                                BorderSide(color: AppColors.secondaryColor))),
-                    height: 30,
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    height: 30,
-                    decoration: const BoxDecoration(
-                      color: AppColors.errorColor,
-                      borderRadius:
-                          BorderRadius.horizontal(right: Radius.circular(8)),
+                      gradient: LinearGradient(
+                        colors: [AppColors.lensGradient1, AppColors.lensGradient2,AppColors.lensGradient3, AppColors.lensGradient4,AppColors.lensGradient5, AppColors.lensGradient6],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.horizontal(left: Radius.circular(16),right: Radius.circular(16)),
                     ),
                   ),
                 ),
               ],
-            ),
+            )
           ],
         ),
       ),

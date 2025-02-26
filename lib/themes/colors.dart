@@ -24,4 +24,12 @@ class AppColors {
   static const Color barLinearTouchedGradient2 = Color.fromRGBO(29, 27, 32, 1);
 
   static const Color gridLineColor = Color.fromRGBO(100, 100, 100, 0.5);
+
+  static const Color lensGradient1 = Color.fromRGBO(86, 254, 4, 1);
+  static const Color lensGradient2 = Color.fromRGBO(137, 255, 80, 1);
+  static const Color lensGradient3 = Color.fromRGBO(255, 237, 62, 1);
+  static const Color lensGradient4 = Color.fromRGBO(255, 211, 80, 1);
+  static const Color lensGradient5 = Color.fromRGBO(255, 125, 84, 1);
+  static const Color lensGradient6 = Color.fromRGBO(255, 61, 0, 1);
+
 }
