@@ -17,10 +17,10 @@ class MemoryCard extends ConsumerWidget {
   final AdfSettingsState adfSettingState;
   final bool isSelected;
 
-  Map getModeByType(String modeType) {
+  Map<String, Object> getModeByType(String modeType) {
     return adfSetting.firstWhere(
-      (mode) => mode["modeType"] == modeType,
-      orElse: () => null,
+          (mode) => mode["modeType"] == modeType,
+      orElse: () => <String, Object>{},
     );
   }
 
@@ -91,14 +91,14 @@ class MemoryCard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      adfSettingState.deviceName!,
+                      adfSettingState.deviceName ?? "Unknown",
                       style: isSelected
                           ? AppTextStyles.deviceSecondertTitle
                           : AppTextStyles.deviceTitle,
                       overflow: TextOverflow.visible,
                     ),
                     Text(
-                      adfSettingState.workingType!,
+                      adfSettingState.workingType ?? "Unknown",
                       style: isSelected
                           ? AppTextStyles.primerySmallText
                           : AppTextStyles.secondarySmallText,
@@ -111,7 +111,7 @@ class MemoryCard extends ConsumerWidget {
           const SizedBox(
             height: 10,
           ),
-          ..._buildWidgets(getModeByType(adfSettingState.workingType!)),
+          ..._buildWidgets(getModeByType(adfSettingState.workingType ?? "unknown")),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 10),
             child: Divider(),
@@ -152,8 +152,15 @@ class MemoryCard extends ConsumerWidget {
   List<Widget> _buildWidgets(Map data) {
     List<Widget> widgets = [];
 
+    final String modeKey = adfSettingState.workingType?.toLowerCase() == 'cutting' ? 'cutting' : 'welding';
+
     data.forEach((key, value) {
       if (value is Map) {
+        final String fullKey = '${modeKey}_${key.toLowerCase()}Value';
+        final valueToDisplay = adfSettingState.values.containsKey(fullKey)
+            ? adfSettingState.values[fullKey].toString()
+            : 'N/A';
+
         widgets.add(Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -184,7 +191,7 @@ class MemoryCard extends ConsumerWidget {
                       )
                     ])),
                 Text(
-                  adfSettingState.values['${key}Value'].toString(),
+                  valueToDisplay,
                   style: isSelected
                       ? AppTextStyles.secondaryBodyText
                       : AppTextStyles.secondaryRegularText,
