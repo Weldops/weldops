@@ -109,12 +109,12 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
   }
 
   Future<void> init() async {
-    final notifier = ref.read(adfSettingStateNotifierProvider.notifier);
+    // final notifier = ref.read(adfSettingStateNotifierProvider.notifier);
 
-    final result = await notifier.loadAdfSettings(widget.device['deviceId'].toString());
+    // final result = await notifier.loadAdfSettings(widget.device['deviceId'].toString());
     await ref.read(memoryStateNotifierProvider.notifier).getMemorySettings(widget.device['deviceId'].toString());
 
-    fetchHelmetData(!result);
+    fetchHelmetData(false);
   }
 
   Future<void> fetchHelmetData(bool setDefaults) async {

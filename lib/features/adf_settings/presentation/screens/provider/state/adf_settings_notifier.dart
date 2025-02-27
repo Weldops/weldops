@@ -54,7 +54,7 @@ class AdfSettingsNotifier extends StateNotifier<AdfSettingsState> {
   Future<void> saveAdfSettings(String deviceId) async {
     try {
       await _saveUseCase.execute(deviceId, state);
-      loadAdfSettings(deviceId);
+      // loadAdfSettings(deviceId);
     } catch (e) {
       print('error--- $e');
     }
