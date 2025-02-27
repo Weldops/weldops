@@ -60,10 +60,14 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
     super.dispose();
   }
 
-  Future<void> loadWorkingType() async {
-    final prefs = await SharedPreferences.getInstance();
-    final workingType = prefs.getString('workingType') ?? 'welding';
-    ref.read(adfSettingStateNotifierProvider.notifier).setWorkingType(workingType);
+  void loadWorkingType() {
+    Future.microtask(() async {
+      final prefs = await SharedPreferences.getInstance();
+      final workingType = prefs.getString('workingType') ?? 'welding';
+      if (mounted) {
+        ref.read(adfSettingStateNotifierProvider.notifier).setWorkingType(workingType);
+      }
+    });
   }
 
   void startReconnectTimer() {
@@ -108,9 +112,9 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
     final notifier = ref.read(adfSettingStateNotifierProvider.notifier);
 
     final result = await notifier.loadAdfSettings(widget.device['deviceId'].toString());
-    fetchHelmetData(!result);
-
     await ref.read(memoryStateNotifierProvider.notifier).getMemorySettings(widget.device['deviceId'].toString());
+
+    fetchHelmetData(!result);
   }
 
   Future<void> fetchHelmetData(bool setDefaults) async {
@@ -125,11 +129,11 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
 
       if (writeChar != null && readChar != null) {
         final List<int> command = await ref.read(adfSettingStateNotifierProvider.notifier).getValue(null, null, adfSettingsState.workingType!,readValue: 1);
-        await writeChar.write(command, withoutResponse: true);
+        await ref.read(bluetoothNotifierProvider.notifier).write(command);
         if (isFirst == true) {
-          final List<int> commandToGetTime =
+          final List<int> command =
           await ref.read(adfSettingStateNotifierProvider.notifier).setDeviceTime();
-          await writeChar.write(commandToGetTime, withoutResponse: true);
+          await ref.read(bluetoothNotifierProvider.notifier).write(command);
           setState(() {
             isFirst = false;
           });
