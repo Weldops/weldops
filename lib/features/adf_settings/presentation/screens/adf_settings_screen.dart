@@ -181,6 +181,7 @@ class _AdfSettingsScreenState extends ConsumerState<AdfSettingsScreen> {
           ? AppLocalizations.of(context)!.connected
           : 'Disconnected';
       if (!device.isConnected) {
+        ref.invalidate(homeStateNotifierProvider);
         startReconnectTimer();
       }
       setState(() {
